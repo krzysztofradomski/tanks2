@@ -18,5 +18,14 @@
     "http": "0.0.0",
     "nodemon": "^1.18.9",
     "socket.io": "^2.2.0"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/krzysztofradomski/multi-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/krzysztofradomski/multi-engine/issues"
+  },
+  "homepage": "https://github.com/krzysztofradomski/multi-engine#readme"
 }
