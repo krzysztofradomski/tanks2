@@ -30,20 +30,22 @@ function startServer() {
       var roomsData = {
         amount: roomsById.length,
         roomsById: roomsById,
-        rooms: roomsById.map(room => ({
+        rooms: roomsById.map((room, index) => ({
           id: room,
+          nr: index + 1,
           data: io.nsps['/'].adapter.rooms[room]
         }))
       }
       io.emit('roomsData', roomsData)
     }
 
-    function joinRoomNumber(nr) {
+    function joinRoomNumber(nr, auto) {
       var room = 'room-' + nr
       if (
-        io.nsps['/'].adapter.rooms[room] &&
-        io.nsps['/'].adapter.rooms[room].length < config.MAX_ROOM_SIZE &&
-        io.nsps['/'].adapter.rooms[room].sockets[socket.id] === undefined
+        auto ||
+        (io.nsps['/'].adapter.rooms[room] &&
+          io.nsps['/'].adapter.rooms[room].length < config.MAX_ROOM_SIZE &&
+          io.nsps['/'].adapter.rooms[room].sockets[socket.id] === undefined)
       ) {
         socket.join(room)
         socket.emit('connectToRoom', nr)
@@ -71,16 +73,40 @@ function startServer() {
 
     // Auto join newly created room.
     socket.on('autoJoin', function() {
-      joinRoomNumber(roomNumber)
+      var room = 'room-' + roomsById.length
+      var firstfree = roomsById.length
+      if (io.nsps['/'].adapter.rooms[room] === undefined) {
+        firstfree = roomsById.length + 1
+      }
+      if (
+        io.nsps['/'].adapter.rooms[room] &&
+        io.nsps['/'].adapter.rooms[room].length === config.MAX_ROOM_SIZE
+      ) {
+        firstfree = roomsById.length + 1
+      }
+      var some = roomsById
+        .map((room, index) => ({
+          id: room,
+          nr: index + 1,
+          data: io.nsps['/'].adapter.rooms[room]
+        }))
+        .filter(entry => entry.data.length === 1)[0]
+      console.log('some', some)
+      firstfree = some ? some.nr : roomsById.length + 1
+      console.log('firstfree', firstfree)
+      joinRoomNumber(firstfree, true)
     })
 
     // Handle client disconnect.
     socket.on('disconnect', function() {
       // console.log('A client disconnected.')
+      if (!io.nsps['/'].adapter.rooms[currentRoom]) {
+        roomsById.filter(room => room !== currentRoom)
+      }
       var i = allClients.indexOf(socket)
       allClients.splice(i, 1)
       socket.leave(currentRoom)
-      console.log('Disconnected socket ', socket.id)
+      broadcastRoomsData()
     })
 
     // Handle client join room by id event, if criteria met.
@@ -91,6 +117,9 @@ function startServer() {
     // Handle client leave room by id event.
     socket.on('leaveRoom', function(roomNumber) {
       var room = 'room-' + roomNumber
+      if (!io.nsps['/'].adapter.rooms[room]) {
+        roomsById.filter(room => room !== room)
+      }
       if (
         io.nsps['/'].adapter.rooms[room] &&
         io.nsps['/'].adapter.rooms[room].sockets[socket.id] !== undefined
