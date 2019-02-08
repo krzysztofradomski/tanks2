@@ -3,3 +3,5 @@ This is intended as a javascript multiplayer game engine, supporting:
 - individual game instances per game room
 - turn-based games 
 - (eventually) realtime games
+
+Run `npm install` and then `npm start`.
