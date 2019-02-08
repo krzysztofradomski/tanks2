@@ -2,11 +2,16 @@ var socket = io()
 
 socket.on('connectToRoom', function(data) {
   document.getElementById('room').textContent = data
+  console.log('Successfully connected to room nr.: ', data)
 })
 
 socket.on('roomsData', function(data) {
   console.log('roomsData', data)
   createStructure(data)
+})
+
+socket.on('nonBreakingError', function(data) {
+  console.warn(data)
 })
 
 function createStructure(data) {
@@ -20,4 +25,12 @@ function createStructure(data) {
     div.innerText = data.rooms[i].id
     container.appendChild(div)
   }
+}
+
+function joinRoom(roomNumber) {
+  socket.emit('joinRoom', roomNumber)
+}
+
+function leaveRoom(roomNumber) {
+  socket.emit('leaveRoom', roomNumber)
 }

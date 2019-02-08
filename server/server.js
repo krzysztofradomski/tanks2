@@ -39,6 +39,7 @@ function startServer() {
       var i = allClients.indexOf(socket)
       allClients.splice(i, 1)
       socket.leave(currentRoomNumber)
+      console.log('Disconnected socket ', socket.id)
     })
 
     // Send this event to everyone in the room.
@@ -63,12 +64,27 @@ function startServer() {
     io.emit('roomsData', roomsData)
 
     // Handle client join room by id event.
+    socket.on('joinRoom', function(roomNumber) {
+      var room = 'room-' + roomNumber
+      if (
+        io.nsps['/'].adapter.rooms[room] &&
+        io.nsps['/'].adapter.rooms[room].length < config.MAX_ROOM_SIZE
+      ) {
+        socket.join(room)
+        socket.emit('connectToRoom', roomNumber)
+      } else {
+        var message = 'Failed to connect to room nr.: ' + roomNumber + '.'
+        socket.emit('nonBreakingError', message)
+      }
+    })
+
+    // Handle client leave room by id event.
     socket.on('leaveRoom', function(roomNumber) {
       var i = allClients.indexOf(socket)
       allClients.splice(i, 1)
       socket.leave(roomNumber)
     })
-    // Handle client leave room by id event.
+    console.log('Connected socket ', socket.id)
   })
 
   // Spin up the server.
