@@ -47,6 +47,7 @@ function joinRoom(roomNumber) {
 
 function leaveRoom(roomNumber) {
   socket.emit('leaveRoom', roomNumber)
+  document.getElementById('room').textContent = ''
 }
 
 function getMyRoom() {
