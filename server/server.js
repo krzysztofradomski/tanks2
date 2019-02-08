@@ -16,23 +16,27 @@ function startServer() {
   io.on('connection', function(socket) {
     // House keeping
     console.log('Connected socket ', socket.id)
-    // Clear out empty rooms.
-    roomsById = roomsById.filter(room => {
-      if (io.nsps['/'].adapter.rooms[room]) {
-        return room
-      }
-    })
     // Keep track of all clients, for future use now.
     allClients.push(socket)
 
+    // Declare function  to clear out empty rooms.
+    function clearEmptyRooms() {
+      roomsById = roomsById.filter(room => {
+        if (io.nsps['/'].adapter.rooms[room]) {
+          return room
+        }
+      })
+    }
+
     // Declare function to broadcast room stats to everyone connected.
     function broadcastRoomsData() {
+      clearEmptyRooms();
       var roomsData = {
         amount: roomsById.length,
         roomsById: roomsById,
-        rooms: roomsById.map((room, index) => ({
+        rooms: roomsById.map(room => ({
           id: room,
-          nr: index + 1,
+          nr: Number(room[room.length -1]),
           data: io.nsps['/'].adapter.rooms[room]
         }))
       }
@@ -85,12 +89,14 @@ function startServer() {
         firstfree = roomsById.length + 1
       }
       var some = roomsById
-        .map((room, index) => ({
+        .map(room => ({
           id: room,
-          nr: index + 1,
+          nr: Number(room[room.length -1]),
           data: io.nsps['/'].adapter.rooms[room]
         }))
-        .filter(entry => entry.data.length === 1)[0]
+
+      console.log('some', some)
+      some = some.filter(entry => entry.data && entry.data.length === 1)[0]
       console.log('some', some)
       firstfree = some ? some.nr : roomsById.length + 1
       console.log('firstfree', firstfree)
@@ -109,13 +115,13 @@ function startServer() {
       broadcastRoomsData()
     })
 
-    // Handle client join room by id event, if criteria met.
-    socket.on('joinRoom', function(roomNumber) {
+    // Handle client join room event, if criteria met.
+    socket.on('joinRoomByNumber', function(roomNumber) {
       joinRoomNumber(roomNumber)
     })
 
     // Handle client leave room by id event.
-    socket.on('leaveRoom', function(roomNumber) {
+    socket.on('leaveRoomByNumber', function(roomNumber) {
       var room = 'room-' + roomNumber
       if (!io.nsps['/'].adapter.rooms[room]) {
         roomsById.filter(room => room !== room)

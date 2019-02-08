@@ -2,30 +2,7 @@ let socket = io()
 
 let gameData = null
 let myId = null
-
-socket.on('connect', function() {
-  console.log('Connected with id ', socket.id)
-  myId = socket.id
-})
-
-socket.on('connectToRoom', function(data) {
-  document.getElementById('room').textContent = data
-  console.log('Successfully connected to room nr.: ', data)
-})
-
-socket.on('leftRoom', function(data) {
-  console.log('Successfully left room nr.: ', data)
-})
-
-socket.on('roomsData', function(data) {
-  console.log('roomsData', data)
-  gameData = data
-  createStructure(data)
-})
-
-socket.on('nonBreakingError', function(data) {
-  console.warn(data)
-})
+let myRoomNumber = null
 
 function createStructure(data) {
   let container = document.getElementById('rooms')
@@ -38,16 +15,17 @@ function createStructure(data) {
     div.innerText = data.rooms[i].id
     container.appendChild(div)
   }
+  document.getElementById('room').textContent = getMyRoomNumber();
   console.log('getMyRoom()', getMyRoom())
 }
 
 function joinRoom(roomNumber) {
-  socket.emit('joinRoom', roomNumber)
+  socket.emit('joinRoomByNumber', roomNumber)
 }
 
 function leaveRoom(roomNumber) {
-  socket.emit('leaveRoom', roomNumber)
-  document.getElementById('room').textContent = ''
+  let nr = roomNumber || getMyRoomNumber()
+  socket.emit('leaveRoomByNumber', nr)
 }
 
 function getMyRoom() {
@@ -55,6 +33,13 @@ function getMyRoom() {
     room => room.data && room.data.sockets[myId]
   )
   return match[0] ? match[0].id : null
+}
+
+function getMyRoomNumber() {
+  let match = gameData.rooms.filter(
+    room => room.data && room.data.sockets[myId]
+  )
+  return match[0] ? match[0].nr : null
 }
 
 function getMyId() {
@@ -68,3 +53,33 @@ function autoJoin() {
     socket.emit('autoJoin')
   }
 }
+
+function clientSetup() {
+  socket.on('connect', function() {
+    console.log('Connected with id ', socket.id)
+    myId = socket.id
+  })
+  
+  socket.on('connectToRoom', function(data) {
+    myRoomNumber = data;
+    document.getElementById('room').textContent = myRoomNumber
+    console.log('Successfully connected to room nr.: ', myRoomNumber)
+  })
+  
+  socket.on('leftRoom', function(data) {
+    console.log('Successfully left room nr.: ', data)
+  })
+  
+  socket.on('roomsData', function(data) {
+    console.log('roomsData', data)
+    gameData = data
+    createStructure(data)
+    document.getElementById('room').textContent = getMyRoomNumber();
+  })
+  
+  socket.on('nonBreakingError', function(data) {
+    console.warn(data)
+  })
+}
+
+clientSetup();
