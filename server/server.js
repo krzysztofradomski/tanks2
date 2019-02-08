@@ -30,13 +30,13 @@ function startServer() {
 
     // Declare function to broadcast room stats to everyone connected.
     function broadcastRoomsData() {
-      clearEmptyRooms();
+      clearEmptyRooms()
       var roomsData = {
         amount: roomsById.length,
         roomsById: roomsById,
         rooms: roomsById.map(room => ({
           id: room,
-          nr: Number(room[room.length -1]),
+          nr: Number(room[room.length - 1]),
           data: io.nsps['/'].adapter.rooms[room]
         }))
       }
@@ -81,11 +81,12 @@ function startServer() {
       var halfEmptyRoom = roomsById
         .map(room => ({
           id: room,
-          nr: Number(room[room.length -1]),
+          nr: Number(room[room.length - 1]),
           data: io.nsps['/'].adapter.rooms[room]
-        })).filter(entry => entry.data && entry.data.length === 1)[0]
+        }))
+        .filter(entry => entry.data && entry.data.length === 1)[0]
       var firstfree = halfEmptyRoom ? halfEmptyRoom.nr : roomsById.length + 1
-      console.log('firstfree', firstfree)
+      // console.log('firstfree', firstfree)
       joinRoomNumber(firstfree, 'auto')
     })
 
