@@ -11,9 +11,14 @@ function startServer() {
   var allClients = []
 
   app.use(express.static('client'))
+  // IO begins.
   io.on('connection', function(socket) {
+    console.log('Connected socket ', socket.id)
+
     // Keep track of all clients, for future use now.
     allClients.push(socket)
+
+    // Setup a room.
     var currentRoomNumber = 'room-' + roomNumber
     // Increase roomNumber if MAX_ROOM_SIZE clients are present in a room.
     if (
@@ -32,6 +37,19 @@ function startServer() {
 
     // Auto join newly created room.
     socket.join(currentRoomNumber)
+
+    // broadcastRoomsData stats to everyone connected.
+    function broadcastRoomsData() {
+      var roomsData = {
+        amount: roomsById.length,
+        roomsById: roomsById,
+        rooms: roomsById.map(room => ({
+          id: room,
+          data: io.nsps['/'].adapter.rooms[room]
+        }))
+      }
+      io.emit('roomsData', roomsData)
+    }
 
     // Handle client disconnect.
     socket.on('disconnect', function() {
@@ -52,26 +70,17 @@ function startServer() {
       }
     })
 
-    // Broadcast stats to everyone connected.
-    var roomsData = {
-      amount: roomsById.length,
-      roomsById: roomsById,
-      rooms: roomsById.map(room => ({
-        id: room,
-        data: io.nsps['/'].adapter.rooms[room]
-      }))
-    }
-    io.emit('roomsData', roomsData)
-
-    // Handle client join room by id event.
+    // Handle client join room by id event, if criteria met.
     socket.on('joinRoom', function(roomNumber) {
       var room = 'room-' + roomNumber
       if (
         io.nsps['/'].adapter.rooms[room] &&
-        io.nsps['/'].adapter.rooms[room].length < config.MAX_ROOM_SIZE
+        io.nsps['/'].adapter.rooms[room].length < config.MAX_ROOM_SIZE &&
+        io.nsps['/'].adapter.rooms[room].sockets[socket.id] === undefined
       ) {
         socket.join(room)
         socket.emit('connectToRoom', roomNumber)
+        broadcastRoomsData()
       } else {
         var message = 'Failed to connect to room nr.: ' + roomNumber + '.'
         socket.emit('nonBreakingError', message)
@@ -80,12 +89,26 @@ function startServer() {
 
     // Handle client leave room by id event.
     socket.on('leaveRoom', function(roomNumber) {
-      var i = allClients.indexOf(socket)
-      allClients.splice(i, 1)
-      socket.leave(roomNumber)
+      var room = 'room-' + roomNumber
+      if (
+        io.nsps['/'].adapter.rooms[room] &&
+        io.nsps['/'].adapter.rooms[room].sockets[socket.id] !== undefined
+      ) {
+        var i = allClients.indexOf(socket)
+        allClients.splice(i, 1)
+        socket.leave(room)
+        socket.emit('leftRoom', roomNumber)
+        broadcastRoomsData()
+      } else {
+        var message = 'Failed to leave room nr.: ' + roomNumber + '.'
+        socket.emit('nonBreakingError', message)
+      }
     })
-    console.log('Connected socket ', socket.id)
+
+    // broadcastRoomsData stats to everyone connected.
+    broadcastRoomsData()
   })
+  // IO ends.
 
   // Spin up the server.
   http.listen(3000, function() {

@@ -1,12 +1,25 @@
 var socket = io()
 
+var gameData = null
+var myId = null
+
+socket.on('connect', function() {
+  console.log('Connected with id ', socket.id)
+  myId = socket.id
+})
+
 socket.on('connectToRoom', function(data) {
   document.getElementById('room').textContent = data
   console.log('Successfully connected to room nr.: ', data)
 })
 
+socket.on('leftRoom', function(data) {
+  console.log('Successfully left room nr.: ', data)
+})
+
 socket.on('roomsData', function(data) {
   console.log('roomsData', data)
+  gameData = data
   createStructure(data)
 })
 
@@ -25,6 +38,7 @@ function createStructure(data) {
     div.innerText = data.rooms[i].id
     container.appendChild(div)
   }
+  console.log('getMyRoom()', getMyRoom())
 }
 
 function joinRoom(roomNumber) {
@@ -33,4 +47,13 @@ function joinRoom(roomNumber) {
 
 function leaveRoom(roomNumber) {
   socket.emit('leaveRoom', roomNumber)
+}
+
+function getMyRoom() {
+  var match = gameData.rooms.filter(room => room.data.sockets[myId])
+  return match[0] ? match[0].id : null
+}
+
+function getMyId() {
+  return myId
 }
