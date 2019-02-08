@@ -1,7 +1,7 @@
-var socket = io()
+let socket = io()
 
-var gameData = null
-var myId = null
+let gameData = null
+let myId = null
 
 socket.on('connect', function() {
   console.log('Connected with id ', socket.id)
@@ -50,10 +50,20 @@ function leaveRoom(roomNumber) {
 }
 
 function getMyRoom() {
-  var match = gameData.rooms.filter(room => room.data.sockets[myId])
+  let match = gameData.rooms.filter(
+    room => room.data && room.data.sockets[myId]
+  )
   return match[0] ? match[0].id : null
 }
 
 function getMyId() {
   return myId
+}
+
+function autoJoin() {
+  if (getMyRoom()) {
+    console.warn('Denied. You are already in room ', getMyRoom())
+  } else {
+    socket.emit('autoJoin')
+  }
 }

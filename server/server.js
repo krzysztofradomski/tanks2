@@ -11,9 +11,30 @@ function startServer() {
   var allClients = []
 
   app.use(express.static('client'))
+
   // IO begins.
   io.on('connection', function(socket) {
     console.log('Connected socket ', socket.id)
+
+    // Declare function to broadcast room stats to everyone connected.
+    function broadcastRoomsData() {
+      var roomsData = {
+        amount: roomsById.length,
+        roomsById: roomsById,
+        rooms: roomsById.map(room => ({
+          id: room,
+          data: io.nsps['/'].adapter.rooms[room]
+        }))
+      }
+      io.emit('roomsData', roomsData)
+    }
+
+    // Clear out empty rooms.
+    roomsById = roomsById.filter(room => {
+      if (io.nsps['/'].adapter.rooms[room]) {
+        return room
+      }
+    })
 
     // Keep track of all clients, for future use now.
     allClients.push(socket)
@@ -36,20 +57,12 @@ function startServer() {
     }
 
     // Auto join newly created room.
-    socket.join(currentRoomNumber)
-
-    // broadcastRoomsData stats to everyone connected.
-    function broadcastRoomsData() {
-      var roomsData = {
-        amount: roomsById.length,
-        roomsById: roomsById,
-        rooms: roomsById.map(room => ({
-          id: room,
-          data: io.nsps['/'].adapter.rooms[room]
-        }))
-      }
-      io.emit('roomsData', roomsData)
-    }
+    socket.on('autoJoin', function() {
+      var currentRoomNumber = 'room-' + roomNumber
+      socket.join(currentRoomNumber)
+      socket.emit('connectToRoom', currentRoomNumber)
+      broadcastRoomsData()
+    })
 
     // Handle client disconnect.
     socket.on('disconnect', function() {
@@ -62,13 +75,6 @@ function startServer() {
 
     // Send this event to everyone in the room.
     io.sockets.in(currentRoomNumber).emit('connectToRoom', roomNumber)
-
-    // Clear out empty rooms.
-    roomsById = roomsById.filter(room => {
-      if (io.nsps['/'].adapter.rooms[room]) {
-        return room
-      }
-    })
 
     // Handle client join room by id event, if criteria met.
     socket.on('joinRoom', function(roomNumber) {
