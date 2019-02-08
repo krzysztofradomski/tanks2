@@ -43,10 +43,11 @@ function startServer() {
       io.emit('roomsData', roomsData)
     }
 
-    function joinRoomNumber(nr, auto) {
+    // Declare function to join specific room
+    function joinRoomNumber(nr, mode) {
       var room = 'room-' + nr
       if (
-        auto ||
+        mode === 'auto' ||
         (io.nsps['/'].adapter.rooms[room] &&
           io.nsps['/'].adapter.rooms[room].length < config.MAX_ROOM_SIZE &&
           io.nsps['/'].adapter.rooms[room].sockets[socket.id] === undefined)
@@ -77,30 +78,15 @@ function startServer() {
 
     // Auto join newly created room.
     socket.on('autoJoin', function() {
-      var room = 'room-' + roomsById.length
-      var firstfree = roomsById.length
-      if (io.nsps['/'].adapter.rooms[room] === undefined) {
-        firstfree = roomsById.length + 1
-      }
-      if (
-        io.nsps['/'].adapter.rooms[room] &&
-        io.nsps['/'].adapter.rooms[room].length === config.MAX_ROOM_SIZE
-      ) {
-        firstfree = roomsById.length + 1
-      }
-      var some = roomsById
+      var halfEmptyRoom = roomsById
         .map(room => ({
           id: room,
           nr: Number(room[room.length -1]),
           data: io.nsps['/'].adapter.rooms[room]
-        }))
-
-      console.log('some', some)
-      some = some.filter(entry => entry.data && entry.data.length === 1)[0]
-      console.log('some', some)
-      firstfree = some ? some.nr : roomsById.length + 1
+        })).filter(entry => entry.data && entry.data.length === 1)[0]
+      var firstfree = halfEmptyRoom ? halfEmptyRoom.nr : roomsById.length + 1
       console.log('firstfree', firstfree)
-      joinRoomNumber(firstfree, true)
+      joinRoomNumber(firstfree, 'auto')
     })
 
     // Handle client disconnect.
@@ -115,7 +101,7 @@ function startServer() {
       broadcastRoomsData()
     })
 
-    // Handle client join room event, if criteria met.
+    // Handle client join room event.
     socket.on('joinRoomByNumber', function(roomNumber) {
       joinRoomNumber(roomNumber)
     })
