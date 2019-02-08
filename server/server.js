@@ -12,6 +12,7 @@ function startServer() {
 
   app.use(express.static('client'))
   io.on('connection', function(socket) {
+    // Keep track of all clients, for future use now.
     allClients.push(socket)
     var currentRoomNumber = 'room-' + roomNumber
     // Increase roomNumber if MAX_ROOM_SIZE clients are present in a room.
@@ -23,14 +24,18 @@ function startServer() {
       roomNumber++
       currentRoomNumber = 'room-' + roomNumber
     }
-    // Update rooms' stats.
+
+    // Update roomsById with current room id.
     if (roomsById.indexOf(currentRoomNumber) < 0) {
       roomsById.push(currentRoomNumber)
     }
 
+    // Auto join newly created room.
     socket.join(currentRoomNumber)
+
+    // Handle client disconnect.
     socket.on('disconnect', function() {
-      console.log('Got disconnect!')
+      // console.log('A client disconnected.')
       var i = allClients.indexOf(socket)
       allClients.splice(i, 1)
       socket.leave(currentRoomNumber)
@@ -38,6 +43,13 @@ function startServer() {
 
     // Send this event to everyone in the room.
     io.sockets.in(currentRoomNumber).emit('connectToRoom', roomNumber)
+
+    // Clear out empty rooms.
+    roomsById = roomsById.filter(room => {
+      if (io.nsps['/'].adapter.rooms[room]) {
+        return room
+      }
+    })
 
     // Broadcast stats to everyone connected.
     var roomsData = {
@@ -49,8 +61,17 @@ function startServer() {
       }))
     }
     io.emit('roomsData', roomsData)
+
+    // Handle client join room by id event.
+    socket.on('leaveRoom', function(roomNumber) {
+      var i = allClients.indexOf(socket)
+      allClients.splice(i, 1)
+      socket.leave(roomNumber)
+    })
+    // Handle client leave room by id event.
   })
 
+  // Spin up the server.
   http.listen(3000, function() {
     console.log('Listening on localhost:3000')
   })
