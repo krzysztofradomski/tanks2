@@ -1,15 +1,18 @@
-var express = require('express')
-var app = express()
-var http = require('http').Server(app)
-var io = require('socket.io')(http)
+const express = require('express')
+const app = express()
+const http = require('http').Server(app)
+const io = require('socket.io')(http)
 
-var config = require('./config')
+const config = require('./config')
 
 function startServer() {
-  var roomNumber = 1
-  var roomsById = []
-  var allClients = []
+  // Basic setup
+  let roomNumber = 1
+  let roomsById = []
+  const allClients = []
+  const allRooms = io.nsps['/'].adapter.rooms
 
+  // Start client hosting.
   app.use(express.static('client'))
 
   // IO begins.
@@ -18,26 +21,51 @@ function startServer() {
     console.log('Connected socket ', socket.id)
     // Keep track of all clients, for future use now.
     allClients.push(socket)
+    // Setup a room.
+    let currentRoom = `room-${roomNumber}`
+    // Increase roomNumber if MAX_ROOM_SIZE clients are present in a room.
+    if (
+      allRooms[currentRoom] &&
+      allRooms[currentRoom].length > config.MAX_ROOM_SIZE - 1
+    ) {
+      roomNumber++
+      currentRoom = `room-${roomNumber}`
+    }
 
-    // Declare function  to clear out empty rooms.
+    // Declare function to clear out empty rooms.
     function clearEmptyRooms() {
       roomsById = roomsById.filter(room => {
-        if (io.nsps['/'].adapter.rooms[room]) {
+        if (allRooms[room]) {
           return room
         }
       })
     }
 
+    // Declare function to get first room with an empty slot.
+    function getFirstFreeRoomNumber() {
+      const halfEmptyRoom = roomsById
+        .map(room => ({
+          id: room,
+          nr: Number(room[room.length - 1]),
+          data: allRooms[room]
+        }))
+        .filter(entry => entry.data && entry.data.length === 1)[0]
+      // ta linijka js zle
+      const firstfree = halfEmptyRoom ? halfEmptyRoom.nr : roomsById.length + 1
+      return firstfree
+    }
+
     // Declare function to broadcast room stats to everyone connected.
     function broadcastRoomsData() {
       clearEmptyRooms()
-      var roomsData = {
+      const roomsData = {
         amount: roomsById.length,
         roomsById: roomsById,
         rooms: roomsById.map(room => ({
           id: room,
+          // fix me
           nr: Number(room[room.length - 1]),
-          data: io.nsps['/'].adapter.rooms[room]
+          data: allRooms[room]
         }))
       }
       io.emit('roomsData', roomsData)
@@ -45,12 +73,12 @@ function startServer() {
 
     // Declare function to join specific room
     function joinRoomNumber(nr, mode) {
-      var room = 'room-' + nr
+      const room = 'room-' + nr
       if (
         mode === 'auto' ||
-        (io.nsps['/'].adapter.rooms[room] &&
-          io.nsps['/'].adapter.rooms[room].length < config.MAX_ROOM_SIZE &&
-          io.nsps['/'].adapter.rooms[room].sockets[socket.id] === undefined)
+        (allRooms[room] &&
+          allRooms[room].length < config.MAX_ROOM_SIZE &&
+          allRooms[room].sockets[socket.id] === undefined)
       ) {
         socket.join(room)
         socket.emit('connectToRoom', nr)
@@ -60,75 +88,62 @@ function startServer() {
         }
         broadcastRoomsData()
       } else {
-        var message = 'Failed to connect to room nr.: ' + nr + '.'
+        const message = `Failed to connect to room nr.: ${nr}.`
         socket.emit('nonBreakingError', message)
       }
     }
 
-    // Setup a room.
-    var currentRoom = 'room-' + roomNumber
-    // Increase roomNumber if MAX_ROOM_SIZE clients are present in a room.
-    if (
-      io.nsps['/'].adapter.rooms[currentRoom] &&
-      io.nsps['/'].adapter.rooms[currentRoom].length > config.MAX_ROOM_SIZE - 1
-    ) {
-      roomNumber++
-      currentRoom = 'room-' + roomNumber
+    // Declare function to auto join first room with empty slot,
+    // or create and join a new one.
+    function autoJoin() {
+      const firstFreeRoomNumber = getFirstFreeRoomNumber()
+      // console.log('firstfree', firstfree)
+      joinRoomNumber(firstFreeRoomNumber, 'auto')
     }
 
-    // Auto join newly created room.
-    socket.on('autoJoin', function() {
-      var halfEmptyRoom = roomsById
-        .map(room => ({
-          id: room,
-          nr: Number(room[room.length - 1]),
-          data: io.nsps['/'].adapter.rooms[room]
-        }))
-        .filter(entry => entry.data && entry.data.length === 1)[0]
-      var firstfree = halfEmptyRoom ? halfEmptyRoom.nr : roomsById.length + 1
-      // console.log('firstfree', firstfree)
-      joinRoomNumber(firstfree, 'auto')
-    })
-
-    // Handle client disconnect.
-    socket.on('disconnect', function() {
+    // Declare function to handle any client disconnecting.
+    function disconnect() {
       // console.log('A client disconnected.')
-      if (!io.nsps['/'].adapter.rooms[currentRoom]) {
-        roomsById.filter(room => room !== currentRoom)
+      if (!allRooms[currentRoom]) {
+        roomsById = roomsById.filter(room => room !== currentRoom)
       }
-      var i = allClients.indexOf(socket)
+      const i = allClients.indexOf(socket)
       allClients.splice(i, 1)
       socket.leave(currentRoom)
       broadcastRoomsData()
-    })
+    }
 
-    // Handle client join room event.
-    socket.on('joinRoomByNumber', function(roomNumber) {
-      joinRoomNumber(roomNumber)
-    })
-
-    // Handle client leave room by id event.
-    socket.on('leaveRoomByNumber', function(roomNumber) {
-      var room = 'room-' + roomNumber
-      if (!io.nsps['/'].adapter.rooms[room]) {
-        roomsById.filter(room => room !== room)
+    // Declare function to handle leaving a specific room.
+    function leaveRoomByNumber(roomNumber) {
+      let room = `room-${roomNumber}`
+      if (!allRooms[room]) {
+        roomsById = roomsById.filter(room => room !== room)
       }
-      if (
-        io.nsps['/'].adapter.rooms[room] &&
-        io.nsps['/'].adapter.rooms[room].sockets[socket.id] !== undefined
-      ) {
-        var i = allClients.indexOf(socket)
+      if (allRooms[room] && allRooms[room].sockets[socket.id] !== undefined) {
+        const i = allClients.indexOf(socket)
         allClients.splice(i, 1)
         socket.leave(room)
         socket.emit('leftRoom', roomNumber)
         broadcastRoomsData()
       } else {
-        var message = 'Failed to leave room nr.: ' + roomNumber + '.'
+        let message = 'Failed to leave room nr.: ' + roomNumber + '.'
         socket.emit('nonBreakingError', message)
       }
-    })
+    }
 
-    // broadcastRoomsData stats to everyone connected.
+    // Auto join newly created room.
+    socket.on('autoJoin', autoJoin)
+
+    // Handle client disconnect.
+    socket.on('disconnect', disconnect)
+
+    // Handle client join room event.
+    socket.on('joinRoomByNumber', roomNumber => joinRoomNumber(roomNumber))
+
+    // Handle client leave room by id event.
+    socket.on('leaveRoomByNumber', leaveRoomByNumber)
+
+    // BroadcastRoomsData stats to everyone connected.
     broadcastRoomsData()
   })
   // IO ends.
