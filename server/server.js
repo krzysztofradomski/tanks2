@@ -5,6 +5,19 @@ const io = require('socket.io')(http)
 
 const config = require('./config')
 
+const getNumberFromRoomId = str => Number(str.match(/\d+/)[0])
+
+const sortAscending = (a, b) => a - b
+
+const findLowestNumberNotInArray = arr => {
+  const set = new Set(arr)
+  let i = 1
+  while (set.has(i)) {
+    i++
+  }
+  return i
+}
+
 function startServer() {
   // Basic setup
   let roomNumber = 1
@@ -43,15 +56,20 @@ function startServer() {
 
     // Declare function to get first room with an empty slot.
     function getFirstFreeRoomNumber() {
-      const halfEmptyRoom = roomsById
+      const firstRoomWithEmptySlot = roomsById
         .map(room => ({
           id: room,
-          nr: Number(room[room.length - 1]),
+          nr: getNumberFromRoomId(room),
           data: allRooms[room]
         }))
-        .filter(entry => entry.data && entry.data.length === 1)[0]
-      // ta linijka js zle
-      const firstfree = halfEmptyRoom ? halfEmptyRoom.nr : roomsById.length + 1
+        .filter(
+          entry => entry.data && entry.data.length === config.MAX_ROOM_SIZE - 1
+        )[0]
+      const firstfree = firstRoomWithEmptySlot
+        ? firstRoomWithEmptySlot.nr
+        : findLowestNumberNotInArray(
+            roomsById.map(getNumberFromRoomId).sort(sortAscending)
+          )
       return firstfree
     }
 
@@ -63,8 +81,7 @@ function startServer() {
         roomsById: roomsById,
         rooms: roomsById.map(room => ({
           id: room,
-          // fix me
-          nr: Number(room[room.length - 1]),
+          nr: getNumberFromRoomId(room),
           data: allRooms[room]
         }))
       }
