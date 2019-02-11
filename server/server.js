@@ -3,6 +3,7 @@ const app = express()
 const http = require('http').Server(app)
 const io = require('socket.io')(http)
 
+const Game = require('./game')
 const config = require('./config')
 const helpers = require('./helpers')
 const {
@@ -17,6 +18,7 @@ function startServer() {
   let roomsById = []
   const allConnectedClients = []
   const allActiveRooms = io.nsps['/'].adapter.rooms
+  const activeGamesMap = {}
 
   // Start client hosting.
   app.use(express.static('client'))
@@ -27,6 +29,7 @@ function startServer() {
     console.log('Connected socket id: ', socket.id)
     // Keep track of all clients, for future use now.
     allConnectedClients.push(socket)
+
     // Setup a room.
     let currentRoom = `room-${roomNumber}`
     // Increase roomNumber if MAX_ROOM_SIZE clients are present in a room.
@@ -45,6 +48,10 @@ function startServer() {
           return room
         }
       })
+      if (!allActiveRooms[currentRoom] && activeGamesMap[currentRoom]) {
+        activeGamesMap[currentRoom].stop()
+        activeGamesMap[currentRoom] = null
+      }
     }
 
     // Declare function to get first room with an empty slot.
@@ -81,6 +88,15 @@ function startServer() {
       io.emit('roomsData', roomsData)
     }
 
+    // Declare function to create and join game room.
+    function joinGame(roomId) {
+      if (!activeGamesMap[roomId]) {
+        console.log('new game', roomId)
+        activeGamesMap[roomId] = new Game(io, roomId)
+        activeGamesMap[roomId].start()
+      }
+    }
+
     // Declare function to join specific room.
     function joinRoomNumber(nr, mode) {
       const room = 'room-' + nr
@@ -96,6 +112,7 @@ function startServer() {
         if (roomsById.indexOf(room) < 0) {
           roomsById.push(room)
         }
+        joinGame(room)
         broadcastRoomsData()
       } else {
         const message = `Failed to connect to room nr.: ${nr}.`
@@ -116,6 +133,7 @@ function startServer() {
       // console.log('A client disconnected.')
       if (!allActiveRooms[currentRoom]) {
         roomsById = roomsById.filter(room => room !== currentRoom)
+        activeGamesMap[currentRoom] = null
       }
       const i = allConnectedClients.indexOf(socket)
       allConnectedClients.splice(i, 1)
@@ -127,7 +145,9 @@ function startServer() {
     function leaveRoomByNumber(roomNumber) {
       let room = `room-${roomNumber}`
       if (!allActiveRooms[room]) {
+        console.log('empty room')
         roomsById = roomsById.filter(room => room !== room)
+        activeGamesMap[currentRoom] = null
       }
       if (
         allActiveRooms[room] &&

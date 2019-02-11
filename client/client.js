@@ -1,8 +1,9 @@
 let socket = io()
 
-let gameData = null
+let roomsData = null
 let myId = null
 let myRoomNumber = null
+let myGameData = null
 
 function createControls() {
   let controls = [
@@ -43,6 +44,7 @@ function createStructure(data) {
     container.appendChild(div)
   }
   document.getElementById('room').textContent = getMyRoomNumber()
+  document.getElementById('gametime').textContent = getMyGameData()
   console.log('getMyRoom()', getMyRoom())
 }
 
@@ -56,17 +58,21 @@ function leaveRoom(roomNumber) {
 }
 
 function getMyRoom() {
-  let match = gameData.rooms.filter(
+  let match = roomsData.rooms.filter(
     room => room.data && room.data.sockets[myId]
   )
   return match[0] ? match[0].id : null
 }
 
 function getMyRoomNumber() {
-  let match = gameData.rooms.filter(
+  let match = roomsData.rooms.filter(
     room => room.data && room.data.sockets[myId]
   )
   return match[0] ? match[0].nr : null
+}
+
+function getMyGameData() {
+  return myGameData
 }
 
 function getMyId() {
@@ -94,18 +100,24 @@ function clientSetup() {
   })
 
   socket.on('leftRoom', function(data) {
+    myGameData = null
     console.log('Successfully left room nr.: ', data)
   })
 
   socket.on('roomsData', function(data) {
     console.log('roomsData', data)
-    gameData = data
+    roomsData = data
     createStructure(data)
     document.getElementById('room').textContent = getMyRoomNumber()
   })
 
   socket.on('nonBreakingError', function(data) {
     console.warn(data)
+  })
+
+  socket.on('gametime', function(data) {
+    myGameData = data
+    document.getElementById('gametime').textContent = data
   })
 }
 
