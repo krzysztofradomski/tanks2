@@ -4,42 +4,35 @@ const http = require('http').Server(app)
 const io = require('socket.io')(http)
 
 const config = require('./config')
-
-const getNumberFromRoomId = str => Number(str.match(/\d+/)[0])
-
-const sortAscending = (a, b) => a - b
-
-const findLowestNumberNotInArray = arr => {
-  const set = new Set(arr)
-  let i = 1
-  while (set.has(i)) {
-    i++
-  }
-  return i
-}
+const helpers = require('./helpers')
+const {
+  sortAscending,
+  findLowestNumberNotInArray,
+  getNumberFromRoomId
+} = helpers
 
 function startServer() {
   // Basic setup
   let roomNumber = 1
   let roomsById = []
-  const allClients = []
-  const allRooms = io.nsps['/'].adapter.rooms
+  const allConnectedClients = []
+  const allActiveRooms = io.nsps['/'].adapter.rooms
 
   // Start client hosting.
   app.use(express.static('client'))
 
   // IO begins.
   io.on('connection', function(socket) {
-    // House keeping
-    console.log('Connected socket ', socket.id)
+    // Log new connections
+    console.log('Connected socket id: ', socket.id)
     // Keep track of all clients, for future use now.
-    allClients.push(socket)
+    allConnectedClients.push(socket)
     // Setup a room.
     let currentRoom = `room-${roomNumber}`
     // Increase roomNumber if MAX_ROOM_SIZE clients are present in a room.
     if (
-      allRooms[currentRoom] &&
-      allRooms[currentRoom].length > config.MAX_ROOM_SIZE - 1
+      allActiveRooms[currentRoom] &&
+      allActiveRooms[currentRoom].length === config.MAX_ROOM_SIZE
     ) {
       roomNumber++
       currentRoom = `room-${roomNumber}`
@@ -48,7 +41,7 @@ function startServer() {
     // Declare function to clear out empty rooms.
     function clearEmptyRooms() {
       roomsById = roomsById.filter(room => {
-        if (allRooms[room]) {
+        if (allActiveRooms[room]) {
           return room
         }
       })
@@ -60,7 +53,7 @@ function startServer() {
         .map(room => ({
           id: room,
           nr: getNumberFromRoomId(room),
-          data: allRooms[room]
+          data: allActiveRooms[room]
         }))
         .filter(
           entry => entry.data && entry.data.length === config.MAX_ROOM_SIZE - 1
@@ -82,7 +75,7 @@ function startServer() {
         rooms: roomsById.map(room => ({
           id: room,
           nr: getNumberFromRoomId(room),
-          data: allRooms[room]
+          data: allActiveRooms[room]
         }))
       }
       io.emit('roomsData', roomsData)
@@ -93,9 +86,9 @@ function startServer() {
       const room = 'room-' + nr
       if (
         mode === 'auto' ||
-        (allRooms[room] &&
-          allRooms[room].length < config.MAX_ROOM_SIZE &&
-          allRooms[room].sockets[socket.id] === undefined)
+        (allActiveRooms[room] &&
+          allActiveRooms[room].length < config.MAX_ROOM_SIZE &&
+          allActiveRooms[room].sockets[socket.id] === undefined)
       ) {
         socket.join(room)
         socket.emit('connectToRoom', nr)
@@ -121,11 +114,11 @@ function startServer() {
     // Declare function to handle any client disconnecting.
     function disconnect() {
       // console.log('A client disconnected.')
-      if (!allRooms[currentRoom]) {
+      if (!allActiveRooms[currentRoom]) {
         roomsById = roomsById.filter(room => room !== currentRoom)
       }
-      const i = allClients.indexOf(socket)
-      allClients.splice(i, 1)
+      const i = allConnectedClients.indexOf(socket)
+      allConnectedClients.splice(i, 1)
       socket.leave(currentRoom)
       broadcastRoomsData()
     }
@@ -133,12 +126,15 @@ function startServer() {
     // Declare function to handle leaving a specific room.
     function leaveRoomByNumber(roomNumber) {
       let room = `room-${roomNumber}`
-      if (!allRooms[room]) {
+      if (!allActiveRooms[room]) {
         roomsById = roomsById.filter(room => room !== room)
       }
-      if (allRooms[room] && allRooms[room].sockets[socket.id] !== undefined) {
-        const i = allClients.indexOf(socket)
-        allClients.splice(i, 1)
+      if (
+        allActiveRooms[room] &&
+        allActiveRooms[room].sockets[socket.id] !== undefined
+      ) {
+        const i = allConnectedClients.indexOf(socket)
+        allConnectedClients.splice(i, 1)
         socket.leave(room)
         socket.emit('leftRoom', roomNumber)
         broadcastRoomsData()
