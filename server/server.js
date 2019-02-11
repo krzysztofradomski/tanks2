@@ -12,7 +12,7 @@ const {
 } = helpers
 
 function startServer() {
-  // Basic setup
+  // Basic setup.
   let roomNumber = 1
   let roomsById = []
   const allConnectedClients = []
@@ -81,7 +81,7 @@ function startServer() {
       io.emit('roomsData', roomsData)
     }
 
-    // Declare function to join specific room
+    // Declare function to join specific room.
     function joinRoomNumber(nr, mode) {
       const room = 'room-' + nr
       if (
