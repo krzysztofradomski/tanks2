@@ -9,7 +9,9 @@ This project is intended as a JavaScript multiplayer game engine, supporting:
 
 Run `npm install` and then `npm start`.
 
-Specs:
+NOTE: at this moment, joining a game room means automatically joining the respective game instance.
+
+Implementation details:
 
 This engine is an Express.js app, it runs the game server and serves the game client. Realtime communication is handled by Socket.io and based on the following events:
 
