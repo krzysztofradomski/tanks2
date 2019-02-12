@@ -86,8 +86,8 @@ function startIO (io) {
     // Declare function to create and join game room.
     function joinGame (roomId) {
       if (!computedActiveGamesMap[roomId]) {
-        console.log('new game', roomId)
-        computedActiveGamesMap[roomId] = new Game(io, roomId)
+        // console.log('new game', roomId)
+        computedActiveGamesMap[roomId] = Game(io, roomId)
         computedActiveGamesMap[roomId].start()
       }
     }
