@@ -14,8 +14,8 @@ let myGameData = null
  */
 function createControls () {
   let controls = [
-    { label: 'autoJoin', f: autoJoin, disabled: getMyRoom() !== null },
-    { label: 'leaveRoom', f: leaveRoom, disabled: getMyRoom() === null }
+    { label: 'autoJoin', f: autoJoin, disabled: getMyRoomId() !== null },
+    { label: 'leaveRoom', f: leaveRoom, disabled: getMyRoomId() === null }
   ]
   let container = document.getElementById('controls')
   container.innerHTML = ''
@@ -54,7 +54,12 @@ function createRoomsDataInfoPanel (data) {
       span.innerText = 'Room full'
       div.appendChild(span)
     }
-    if (data.rooms[i].data.length < 2 && getMyRoom() === null) {
+    if (data.rooms[i].id === getMyRoomId()) {
+      let span = document.createElement('span')
+      span.innerText = 'This is my room'
+      div.appendChild(span)
+    }
+    if (data.rooms[i].data.length < 2 && getMyRoomId() === null) {
       let button = document.createElement('button')
       button.setAttribute('class', 'joinRoom')
       button.addEventListener('click', function () {
@@ -67,7 +72,7 @@ function createRoomsDataInfoPanel (data) {
   }
   document.getElementById('room').textContent = getMyRoomNumber()
   document.getElementById('gametime').textContent = getMyGameData()
-  console.log('getMyRoom()', getMyRoom())
+  console.log('getMyRoomId()', getMyRoomId())
 }
 
 /**
@@ -94,7 +99,7 @@ function leaveRoom (roomNumber) {
  *
  * @returns string
  */
-function getMyRoom () {
+function getMyRoomId () {
   let match = roomsData.rooms.filter(
     room => room.data && room.data.sockets[myId]
   )
@@ -131,8 +136,8 @@ function getMyGameData () {
  *
  */
 function autoJoin () {
-  if (getMyRoom()) {
-    console.warn('Denied. You are already in room ', getMyRoom())
+  if (getMyRoomId()) {
+    console.warn('Denied. You are already in room ', getMyRoomId())
   } else {
     socket.emit('autoJoin')
   }
