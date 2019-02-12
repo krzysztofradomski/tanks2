@@ -1,0 +1,23 @@
+.control {
+  border-radius: 5px;
+  margin: 5px;
+}
+
+.control:disabled {
+  opacity: 0.5;
+}
+
+.tile {
+  width: 300px;
+  padding: 5px;
+  border-top: 1px solid black;
+}
+
+.tile span {
+  color: grey;
+  margin: 5px;
+}
+
+.joinRoom {
+  margin: 5px;
+}

@@ -1,3 +1,5 @@
+/* This is just a mockup UI */
+
 // eslint-disable-next-line
 let socket = io()
 
@@ -6,6 +8,10 @@ let myId = null
 let myRoomNumber = null
 let myGameData = null
 
+/**
+ * Create buttons to auto join and leave rooms.
+ *
+ */
 function createControls () {
   let controls = [
     { label: 'autoJoin', f: autoJoin, disabled: getMyRoom() !== null },
@@ -25,7 +31,12 @@ function createControls () {
   }
 }
 
-function createStructure (data) {
+/**
+ * Create basic html structure to display rooms' info.
+ *
+ * @param {object} data
+ */
+function createRoomsDataInfoPanel (data) {
   createControls()
   let container = document.getElementById('rooms')
   container.innerHTML = ''
@@ -33,6 +44,16 @@ function createStructure (data) {
     let div = document.createElement('div')
     div.setAttribute('class', 'tile')
     div.innerText = data.rooms[i].id
+    if (data.rooms[i].data.length < 2) {
+      let span = document.createElement('span')
+      span.innerText = '1 spot empty'
+      div.appendChild(span)
+    }
+    if (data.rooms[i].data.length === 2) {
+      let span = document.createElement('span')
+      span.innerText = 'Room full'
+      div.appendChild(span)
+    }
     if (data.rooms[i].data.length < 2 && getMyRoom() === null) {
       let button = document.createElement('button')
       button.setAttribute('class', 'joinRoom')
@@ -49,15 +70,30 @@ function createStructure (data) {
   console.log('getMyRoom()', getMyRoom())
 }
 
+/**
+ * Join room by room index.
+ *
+ * @param {number} roomNumber
+ */
 function joinRoom (roomNumber) {
   socket.emit('joinRoomByNumber', roomNumber)
 }
 
+/**
+ * Leave room by index.
+ *
+ * @param {number} roomNumber
+ */
 function leaveRoom (roomNumber) {
   let nr = roomNumber || getMyRoomNumber()
   socket.emit('leaveRoomByNumber', nr)
 }
 
+/**
+ * Returns connection's active room id, if any.
+ *
+ * @returns string
+ */
 function getMyRoom () {
   let match = roomsData.rooms.filter(
     room => room.data && room.data.sockets[myId]
@@ -65,6 +101,11 @@ function getMyRoom () {
   return match[0] ? match[0].id : null
 }
 
+/**
+ * Returns connection's active room index, if any.
+ *
+ * @returns
+ */
 function getMyRoomNumber () {
   let match = roomsData.rooms.filter(
     room => room.data && room.data.sockets[myId]
@@ -72,6 +113,11 @@ function getMyRoomNumber () {
   return match[0] ? match[0].nr : null
 }
 
+/**
+ * Returns connection's room game data.
+ *
+ * @returns
+ */
 function getMyGameData () {
   return myGameData
 }
@@ -80,6 +126,10 @@ function getMyGameData () {
 //   return myId
 // }
 
+/**
+ * Join first available room.
+ *
+ */
 function autoJoin () {
   if (getMyRoom()) {
     console.warn('Denied. You are already in room ', getMyRoom())
@@ -88,6 +138,10 @@ function autoJoin () {
   }
 }
 
+/**
+ * Assign local client id and attach network event handlers.
+ *
+ */
 function clientSetup () {
   socket.on('connect', function () {
     console.log('Connected with id ', socket.id)
@@ -108,7 +162,7 @@ function clientSetup () {
   socket.on('roomsData', function (data) {
     console.log('roomsData', data)
     roomsData = data
-    createStructure(data)
+    createRoomsDataInfoPanel(data)
     document.getElementById('room').textContent = getMyRoomNumber()
   })
 
