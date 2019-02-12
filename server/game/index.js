@@ -50,7 +50,7 @@ const startGame = state => ({
       state.interval = setInterval(() => {
         loopGame(state).gameLoop()
         const gameData = state.time
-        state.io.to(state.id).emit('gametime', gameData)
+        state.io.to(state.id).emit('gameLoop', gameData)
       }, state.framerate)
     }
   }

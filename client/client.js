@@ -116,7 +116,7 @@ function clientSetup () {
     console.warn(data)
   })
 
-  socket.on('gametime', function (data) {
+  socket.on('gameLoop', function (data) {
     myGameData = data
     document.getElementById('gametime').textContent = data
   })
