@@ -9,6 +9,8 @@ This project is intended as a JavaScript multiplayer game engine, supporting:
 
 Run `npm install` and then `npm start`.
 
+Specs:
+
 This engine is an Express.js app, it runs the game server and serves the game client. Realtime communication is handled by Socket.io and based on the following events:
 
 **Server emitted events**:
@@ -17,7 +19,7 @@ This engine is an Express.js app, it runs the game server and serves the game cl
 - _roomsData {obj}_ - broadcasts updated rooms and connections data (this is the only event sent to all active sockets)
 - _leftRoom {integer}_ - confirms socket leaving room of given index
 - _nonBreakingError {string}_ - emits soft errors, like failure to join given room
-- _gameLoop_ - emits game data for game instance pair per room
+- _gameLoop_ - emits game instance data to the respective game room
 
 **Server handled events**:
 
