@@ -1,23 +1,34 @@
 const Game = require('../game')
 const config = require('../config')
-const helpers = require('../../helpers/index.js')
 const {
   sortAscending,
   findLowestNumberNotInArray,
   getNumberFromRoomId
-} = helpers
+} = require('../../helpers/index.js')
 
+/**
+ * This function sets up the Socket.io communication and shared rooms related namespace.
+ * It requires an Socket.io instance based on the Express server.
+ * Variable roomNumber is the initial room index.
+ * Variables shared by connections are either computed (managed by event handlers),
+ * or native (extracted from Socket.io).
+ *
+ * @param {object} io
+ */
 function startIO (io) {
-  // Basic setup.
   let roomNumber = 1
   let computedRoomsById = []
   const nativeAllConnectedClients = []
   const nativeAllActiveRooms = io.nsps['/'].adapter.rooms
   const computedActiveGamesMap = {}
 
-  // IO begins.
-  io.on('connection', function (socket) {
-    // Log new connections
+  /**
+   * This function is the basic connection event handler and unique connection namespace.
+   * It requires a connection instance obtained from the connection event.
+   *
+   * @param {object} socket
+   */
+  function handleConnection (socket) {
     console.log('Connected socket id: ', socket.id)
     // Keep track of all clients, for future use now.
     nativeAllConnectedClients.push(socket)
@@ -33,7 +44,9 @@ function startIO (io) {
       currentRoom = `room-${roomNumber}`
     }
 
-    // Declare function to clear out empty rooms.
+    /**
+     *  Deletes empty rooms.
+     */
     function clearEmptyRooms () {
       computedRoomsById = computedRoomsById.filter(room => {
         if (nativeAllActiveRooms[room]) {
@@ -49,7 +62,12 @@ function startIO (io) {
       }
     }
 
-    // Declare function to get first room with an empty slot.
+    /**
+     * Returns the index of first room with an empty slot.
+     * If there is no such room, it will generate lowest available index.
+     *
+     * @returns number
+     */
     function getFirstFreeRoomNumber () {
       const firstRoomWithEmptySlot = computedRoomsById
         .map(room => ({
@@ -68,7 +86,11 @@ function startIO (io) {
       return firstfree
     }
 
-    // Declare function to broadcast room stats to everyone connected.
+    /**
+     * Broadcasts room stats to every connected socket.
+     * Emits object.
+     *
+     */
     function broadcastRoomsData () {
       clearEmptyRooms()
       const roomsData = {
@@ -83,8 +105,12 @@ function startIO (io) {
       io.emit('roomsData', roomsData)
     }
 
-    // Declare function to create and join game room.
-    function joinGame (roomId) {
+    /**
+     * Creates and starts a game instance for the respective room, if none exists.
+     *
+     * @param {string} roomId
+     */
+    function createGameInstance (roomId) {
       if (!computedActiveGamesMap[roomId]) {
         // console.log('new game', roomId)
         computedActiveGamesMap[roomId] = Game(io, roomId)
@@ -92,7 +118,12 @@ function startIO (io) {
       }
     }
 
-    // Declare function to join specific room.
+    /**
+     * Joins given room by index. Accepts a second optional parameter: mode.
+     *
+     * @param {number} nr
+     * @param {string} mode
+     */
     function joinRoomNumber (nr, mode) {
       const room = 'room-' + nr
       if (
@@ -107,7 +138,7 @@ function startIO (io) {
         if (computedRoomsById.indexOf(room) < 0) {
           computedRoomsById.push(room)
         }
-        joinGame(room)
+        createGameInstance(room)
         broadcastRoomsData()
       } else {
         const message = `Failed to connect to room nr.: ${nr}.`
@@ -115,15 +146,20 @@ function startIO (io) {
       }
     }
 
-    // Declare function to auto join first room with empty slot,
-    // or create and join a new one.
+    /**
+     * Makes socket automatically join first available room.
+     *
+     */
     function autoJoin () {
       const firstFreeRoomNumber = getFirstFreeRoomNumber()
       // console.log('firstfree', firstfree)
       joinRoomNumber(firstFreeRoomNumber, 'auto')
     }
 
-    // Declare function to handle any client disconnecting.
+    /**
+     * Handles native disconnect event.
+     *
+     */
     function disconnect () {
       // console.log('A client disconnected.')
       if (!nativeAllActiveRooms[currentRoom]) {
@@ -138,7 +174,12 @@ function startIO (io) {
       broadcastRoomsData()
     }
 
-    // Declare function to handle leaving a specific room.
+    /**
+     * Makes socket leave its room.
+     * Requires room index.
+     *
+     * @param {number} roomNumber
+     */
     function leaveRoomByNumber (roomNumber) {
       let room = `room-${roomNumber}`
       if (!nativeAllActiveRooms[room]) {
@@ -171,12 +212,13 @@ function startIO (io) {
     socket.on('joinRoomByNumber', roomNumber => joinRoomNumber(roomNumber))
 
     // Handle client leave room by id event.
-    socket.on('leaveRoomByNumber', leaveRoomByNumber)
+    socket.on('leaveRoomByNumber', roomNumber => leaveRoomByNumber(roomNumber))
 
     // BroadcastRoomsData stats to everyone connected.
     broadcastRoomsData()
-  })
-  // IO ends.
+  }
+
+  io.on('connection', handleConnection)
 }
 
 module.exports = startIO
