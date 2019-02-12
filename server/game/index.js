@@ -11,12 +11,24 @@ class Game {
   start () {
     if (this.running === false) {
       this.running = true
-      this.interval = setInterval(() => {
-        this.gameLoop()
-        const gameData = this.time
-        this.io.to(this.id).emit('gameLoop', gameData)
-      }, this.framerate)
+      // this.interval = setInterval(() => {
+      //   this.gameLoop()
+      //   const gameData = this.time
+      //   this.io.to(this.id).emit('gameLoop', gameData)
+      // }, this.framerate)
+      this.scheduleNextTick()
     }
+  }
+
+  scheduleNextTick () {
+    this.interval = setTimeout(() => this.tick(), this.framerate)
+  }
+
+  tick () {
+    this.gameLoop()
+    const gameData = this.time
+    this.io.to(this.id).emit('gameLoop', gameData)
+    this.scheduleNextTick()
   }
 
   gameLoop () {
