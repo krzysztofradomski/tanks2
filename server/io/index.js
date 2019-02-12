@@ -113,7 +113,7 @@ function startIO (io) {
     function createGameInstance (roomId) {
       if (!computedActiveGamesMap[roomId]) {
         // console.log('new game', roomId)
-        computedActiveGamesMap[roomId] = Game(io, roomId)
+        computedActiveGamesMap[roomId] = new Game(io, roomId)
         computedActiveGamesMap[roomId].start()
       }
     }
