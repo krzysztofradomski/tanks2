@@ -17,9 +17,9 @@ This engine is an Express.js app, it runs the game server and serves the game cl
 
 **Server emitted events**:
 
-- _connectToRoom {integer}_ - confirms socket joining chosen room
+- _connectToRoom {string}_ - confirms socket joining room of given id
 - _roomsData {obj}_ - broadcasts updated rooms and connections data (this is the only event sent to all active sockets)
-- _leftRoom {integer}_ - confirms socket leaving room of given index
+- _leftRoom {string}_ - confirms socket leaving room of given id
 - _nonBreakingError {string}_ - emits soft errors, like failure to join given room
 - _gameLoop_ - emits game instance data to the respective game room
 
@@ -32,8 +32,8 @@ This engine is an Express.js app, it runs the game server and serves the game cl
 **Client emitted events**:
 
 - _autoJoin_ - requests joining first available room
-- _joinRoomByNumber {integer}_ - requests joining room by room index
-- _leaveRoomByNumber {integer}_ - requests leaving room by room index
+- _joinRoomById {string}_ - requests joining room by given id
+- _leaveRoomById {string}_ - requests leaving room by given id
 
 **Client handled events**:
 
