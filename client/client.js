@@ -63,7 +63,7 @@ function createRoomsDataInfoPanel (data) {
       let button = document.createElement('button')
       button.setAttribute('class', 'joinRoom')
       button.addEventListener('click', function () {
-        joinRoom(data.rooms[i].nr)
+        joinRoom(data.rooms[i].id)
       })
       button.innerText = 'Join room ' + data.rooms[i].nr
       div.appendChild(button)
@@ -78,20 +78,20 @@ function createRoomsDataInfoPanel (data) {
 /**
  * Join room by room index.
  *
- * @param {number} roomNumber
+ * @param {string} roomId
  */
-function joinRoom (roomNumber) {
-  socket.emit('joinRoomByNumber', roomNumber)
+function joinRoom (roomId) {
+  socket.emit('joinRoomById', roomId)
 }
 
 /**
  * Leave room by index.
  *
- * @param {number} roomNumber
+ * @param {string} roomId
  */
-function leaveRoom (roomNumber) {
-  let nr = roomNumber || getMyRoomNumber()
-  socket.emit('leaveRoomByNumber', nr)
+function leaveRoom (roomId) {
+  let id = roomId || getMyRoomId()
+  socket.emit('leaveRoomById', id)
 }
 
 /**
@@ -156,12 +156,12 @@ function clientSetup () {
   socket.on('connectToRoom', function (data) {
     myRoomNumber = data
     document.getElementById('room').textContent = myRoomNumber
-    console.log('Successfully connected to room nr.: ', myRoomNumber)
+    console.log('Successfully connected to room: ', myRoomNumber)
   })
 
   socket.on('leftRoom', function (data) {
     myGameData = null
-    console.log('Successfully left room nr.: ', data)
+    console.log('Successfully left room: ', data)
   })
 
   socket.on('roomsData', function (data) {

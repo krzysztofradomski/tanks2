@@ -15,7 +15,7 @@ const {
  *
  * @param {object} io
  */
-function startIO (io) {
+function startIO(io) {
   let roomNumber = 1
   let computedRoomsById = []
   const nativeAllConnectedClients = []
@@ -28,7 +28,7 @@ function startIO (io) {
    *
    * @param {object} socket
    */
-  function handleConnection (socket) {
+  function handleConnection(socket) {
     console.log('Connected socket id: ', socket.id)
     // Keep track of all clients, for future use now.
     nativeAllConnectedClients.push(socket)
@@ -47,7 +47,7 @@ function startIO (io) {
     /**
      *  Deletes empty rooms.
      */
-    function clearEmptyRooms () {
+    function clearEmptyRooms() {
       computedRoomsById = computedRoomsById.filter(room => {
         if (nativeAllActiveRooms[room]) {
           return room
@@ -63,12 +63,13 @@ function startIO (io) {
     }
 
     /**
-     * Returns the index of first room with an empty slot.
-     * If there is no such room, it will generate lowest available index.
+     * Returns the id of first room with an empty slot.
+     * If there is no such room, it will calculate lowest available index
+     * and generate room id.
      *
-     * @returns number
+     * @returns string
      */
-    function getFirstFreeRoomNumber () {
+    function getFirstFreeRoom() {
       const firstRoomWithEmptySlot = computedRoomsById
         .map(room => ({
           id: room,
@@ -78,12 +79,13 @@ function startIO (io) {
         .filter(
           entry => entry.data && entry.data.length === config.MAX_ROOM_SIZE - 1
         )[0]
-      const firstfree = firstRoomWithEmptySlot
+      const firstfreeIndex = firstRoomWithEmptySlot
         ? firstRoomWithEmptySlot.nr
         : findLowestNumberNotInArray(
-          computedRoomsById.map(getNumberFromRoomId).sort(sortAscending)
-        )
-      return firstfree
+            computedRoomsById.map(getNumberFromRoomId).sort(sortAscending)
+          )
+      const firstFreeRoom = 'room-' + firstfreeIndex
+      return firstFreeRoom
     }
 
     /**
@@ -91,7 +93,7 @@ function startIO (io) {
      * Emits object.
      *
      */
-    function broadcastRoomsData () {
+    function broadcastRoomsData() {
       clearEmptyRooms()
       const roomsData = {
         amount: computedRoomsById.length,
@@ -110,7 +112,7 @@ function startIO (io) {
      *
      * @param {string} roomId
      */
-    function createGameInstance (roomId) {
+    function createGameInstance(roomId) {
       if (!computedActiveGamesMap[roomId]) {
         // console.log('new game', roomId)
         computedActiveGamesMap[roomId] = new Game(io, roomId)
@@ -119,29 +121,28 @@ function startIO (io) {
     }
 
     /**
-     * Joins given room by index. Accepts a second optional parameter: mode.
+     * Joins given room by room id. Accepts a second optional parameter: mode.
      *
-     * @param {number} nr
+     * @param {string} roomId
      * @param {string} mode
      */
-    function joinRoomNumber (nr, mode) {
-      const room = 'room-' + nr
+    function joinRoomById(roomId, mode) {
       if (
         mode === 'auto' ||
-        (nativeAllActiveRooms[room] &&
-          nativeAllActiveRooms[room].length < config.MAX_ROOM_SIZE &&
-          nativeAllActiveRooms[room].sockets[socket.id] === undefined)
+        (nativeAllActiveRooms[roomId] &&
+          nativeAllActiveRooms[roomId].length < config.MAX_ROOM_SIZE &&
+          nativeAllActiveRooms[roomId].sockets[socket.id] === undefined)
       ) {
-        socket.join(room)
-        socket.emit('connectToRoom', nr)
+        socket.join(roomId)
+        socket.emit('connectToRoom', roomId)
         // Update computedRoomsById with current room id.
-        if (computedRoomsById.indexOf(room) < 0) {
-          computedRoomsById.push(room)
+        if (computedRoomsById.indexOf(roomId) < 0) {
+          computedRoomsById.push(roomId)
         }
-        createGameInstance(room)
+        createGameInstance(roomId)
         broadcastRoomsData()
       } else {
-        const message = `Failed to connect to room nr.: ${nr}.`
+        const message = `Failed to connect to room ${roomId}.`
         socket.emit('nonBreakingError', message)
       }
     }
@@ -150,17 +151,17 @@ function startIO (io) {
      * Makes socket automatically join first available room.
      *
      */
-    function autoJoin () {
-      const firstFreeRoomNumber = getFirstFreeRoomNumber()
+    function autoJoin() {
+      const firstFreeRoom = getFirstFreeRoom()
       // console.log('firstfree', firstfree)
-      joinRoomNumber(firstFreeRoomNumber, 'auto')
+      joinRoomById(firstFreeRoom, 'auto')
     }
 
     /**
      * Handles native disconnect event.
      *
      */
-    function disconnect () {
+    function disconnect() {
       // console.log('A client disconnected.')
       if (!nativeAllActiveRooms[currentRoom]) {
         computedRoomsById = computedRoomsById.filter(
@@ -180,24 +181,23 @@ function startIO (io) {
      *
      * @param {number} roomNumber
      */
-    function leaveRoomByNumber (roomNumber) {
-      let room = `room-${roomNumber}`
-      if (!nativeAllActiveRooms[room]) {
+    function leaveRoomById(roomId) {
+      if (!nativeAllActiveRooms[roomId]) {
         console.log('empty room')
-        computedRoomsById = computedRoomsById.filter(r => r !== room)
+        computedRoomsById = computedRoomsById.filter(r => r !== roomId)
         computedActiveGamesMap[currentRoom] = null
       }
       if (
-        nativeAllActiveRooms[room] &&
-        nativeAllActiveRooms[room].sockets[socket.id] !== undefined
+        nativeAllActiveRooms[roomId] &&
+        nativeAllActiveRooms[roomId].sockets[socket.id] !== undefined
       ) {
         const i = nativeAllConnectedClients.indexOf(socket)
         nativeAllConnectedClients.splice(i, 1)
-        socket.leave(room)
-        socket.emit('leftRoom', roomNumber)
+        socket.leave(roomId)
+        socket.emit('leftRoom', roomId)
         broadcastRoomsData()
       } else {
-        let message = 'Failed to leave room nr.: ' + roomNumber + '.'
+        let message = 'Failed to leave room ' + roomId + '.'
         socket.emit('nonBreakingError', message)
       }
     }
@@ -208,11 +208,11 @@ function startIO (io) {
     // Handle client disconnect.
     socket.on('disconnect', disconnect)
 
-    // Handle client join room event.
-    socket.on('joinRoomByNumber', roomNumber => joinRoomNumber(roomNumber))
+    // Handle client join room by id event.
+    socket.on('joinRoomById', roomId => joinRoomById(roomId))
 
     // Handle client leave room by id event.
-    socket.on('leaveRoomByNumber', roomNumber => leaveRoomByNumber(roomNumber))
+    socket.on('leaveRoomById', roomId => leaveRoomById(roomId))
 
     // BroadcastRoomsData stats to everyone connected.
     broadcastRoomsData()
