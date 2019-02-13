@@ -1,5 +1,5 @@
 const startGame = state => ({
-  start () {
+  start() {
     if (state.running === false) {
       state.running = true
       state.interval = setInterval(() => {

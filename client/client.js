@@ -12,7 +12,7 @@ let myGameData = null
  * Create buttons to auto join and leave rooms.
  *
  */
-function createControls () {
+function createControls() {
   let controls = [
     { label: 'autoJoin', f: autoJoin, disabled: getMyRoomId() !== null },
     { label: 'leaveRoom', f: leaveRoom, disabled: getMyRoomId() === null }
@@ -36,7 +36,7 @@ function createControls () {
  *
  * @param {object} data
  */
-function createRoomsDataInfoPanel (data) {
+function createRoomsDataInfoPanel(data) {
   createControls()
   let container = document.getElementById('rooms')
   container.innerHTML = ''
@@ -80,7 +80,7 @@ function createRoomsDataInfoPanel (data) {
  *
  * @param {string} roomId
  */
-function joinRoom (roomId) {
+function joinRoom(roomId) {
   socket.emit('joinRoomById', roomId)
 }
 
@@ -89,7 +89,7 @@ function joinRoom (roomId) {
  *
  * @param {string} roomId
  */
-function leaveRoom (roomId) {
+function leaveRoom(roomId) {
   let id = roomId || getMyRoomId()
   socket.emit('leaveRoomById', id)
 }
@@ -99,7 +99,7 @@ function leaveRoom (roomId) {
  *
  * @returns string
  */
-function getMyRoomId () {
+function getMyRoomId() {
   let match = roomsData.rooms.filter(
     room => room.data && room.data.sockets[myId]
   )
@@ -111,7 +111,7 @@ function getMyRoomId () {
  *
  * @returns
  */
-function getMyRoomNumber () {
+function getMyRoomNumber() {
   let match = roomsData.rooms.filter(
     room => room.data && room.data.sockets[myId]
   )
@@ -123,7 +123,7 @@ function getMyRoomNumber () {
  *
  * @returns
  */
-function getMyGameData () {
+function getMyGameData() {
   return myGameData
 }
 
@@ -135,7 +135,7 @@ function getMyGameData () {
  * Join first available room.
  *
  */
-function autoJoin () {
+function autoJoin() {
   if (getMyRoomId()) {
     console.warn('Denied. You are already in room ', getMyRoomId())
   } else {
@@ -147,7 +147,7 @@ function autoJoin () {
  * Assign local client id and attach network event handlers.
  *
  */
-function clientSetup () {
+function clientSetup() {
   socket.on('connect', function () {
     console.log('Connected with id ', socket.id)
     myId = socket.id

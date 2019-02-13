@@ -4,7 +4,7 @@ const http = require('http').Server(app)
 const io = require('socket.io')(http)
 const startIO = require('../server/io')
 
-function startServer () {
+function startServer() {
   // Start client hosting.
   app.use(express.static('client'))
   // Start IO

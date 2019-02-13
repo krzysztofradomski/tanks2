@@ -82,8 +82,8 @@ function startIO(io) {
       const firstfreeIndex = firstRoomWithEmptySlot
         ? firstRoomWithEmptySlot.nr
         : findLowestNumberNotInArray(
-            computedRoomsById.map(getNumberFromRoomId).sort(sortAscending)
-          )
+          computedRoomsById.map(getNumberFromRoomId).sort(sortAscending)
+        )
       const firstFreeRoom = 'room-' + firstfreeIndex
       return firstFreeRoom
     }

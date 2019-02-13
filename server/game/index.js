@@ -1,5 +1,5 @@
 class Game {
-  constructor (io, roomId) {
+  constructor(io, roomId) {
     this.io = io
     this.id = roomId
     this.time = 0
@@ -8,7 +8,7 @@ class Game {
     this.framerate = 1000 / 30
   }
 
-  start () {
+  start() {
     if (this.running === false) {
       this.running = true
       // this.interval = setInterval(() => {
@@ -20,22 +20,22 @@ class Game {
     }
   }
 
-  scheduleNextTick () {
+  scheduleNextTick() {
     this.interval = setTimeout(() => this.tick(), this.framerate)
   }
 
-  tick () {
+  tick() {
     this.gameLoop()
     const gameData = this.time
     this.io.to(this.id).emit('gameLoop', gameData)
     this.scheduleNextTick()
   }
 
-  gameLoop () {
+  gameLoop() {
     this.time++
   }
 
-  stop () {
+  stop() {
     if (this.running === true) {
       this.running = false
       clearInterval(this.interval)
