@@ -134,7 +134,7 @@ function startIO(io) {
           nativeAllActiveRooms[roomId].sockets[socket.id] === undefined)
       ) {
         socket.join(roomId)
-        socket.emit('connectToRoom', roomId)
+        socket.emit('connectedToRoom', roomId)
         // Update computedRoomsById with current room id.
         if (computedRoomsById.indexOf(roomId) < 0) {
           computedRoomsById.push(roomId)

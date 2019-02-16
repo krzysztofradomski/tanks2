@@ -153,7 +153,7 @@ function clientSetup() {
     myId = socket.id
   })
 
-  socket.on('connectToRoom', function (data) {
+  socket.on('connectedToRoom', function (data) {
     myRoomNumber = data
     document.getElementById('room').textContent = myRoomNumber
     console.log('Successfully connected to room: ', myRoomNumber)
