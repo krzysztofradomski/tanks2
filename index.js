@@ -1,3 +1,3 @@
-var startServer = require('./server/server');
+var startServer = require('./gameServer/server')
 
-startServer();
+startServer()
