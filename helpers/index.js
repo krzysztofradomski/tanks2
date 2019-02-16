@@ -1,4 +1,5 @@
-const getNumberFromRoomId = str => Number(str.match(/\d+/)[0])
+const getNumberFromRoomId = str =>
+  str.match(/\d+/) ? Number(str.match(/\d+/)[0]) : null
 
 const sortAscending = (a, b) => a - b
 

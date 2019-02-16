@@ -4,13 +4,21 @@
     <title>Rooms</title>
   </head>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="client.example.js"></script>
+  <script src="client.example.js" defer></script>
   <link rel="stylesheet" type="text/css" href="styles.css">
   <body>
     <div id="controls"></div>
-    <p>You are in room no.: <span id="room"></span></p>
+    <p>You are in room: <span id="room"></span></p>
     <p>Your gametime (basic game data for your room): <span id="gametime"></span></div>
     <p>Active rooms:</p>
     <div id="rooms"></div>
+
+    <form id="private">
+      Join private room by id (room name):<br>
+      <input type="text" name="room" placeholder="Type room name here">
+      <br><br>
+      <input type="submit" name="joinPrivate" value="Join game">
+    </form>
+
   </body>
 </html>

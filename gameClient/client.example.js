@@ -29,6 +29,7 @@ function createControls() {
     button.innerText = controls[i].label
     container.appendChild(button)
   }
+  document.getElementsByName('joinPrivate')[0].disabled = getMyRoomId() !== null
 }
 
 /**
@@ -57,15 +58,20 @@ function createRoomsDataInfoPanel(data) {
     if (data.rooms[i].id === getMyRoomId()) {
       let span = document.createElement('span')
       span.innerText = 'This is my room'
+      span.setAttribute('class', 'mine')
       div.appendChild(span)
     }
-    if (data.rooms[i].data.length < 2 && getMyRoomId() === null) {
+    if (
+      data.rooms[i].type === 'public' &&
+      data.rooms[i].data.length < 2 &&
+      getMyRoomId() === null
+    ) {
       let button = document.createElement('button')
       button.setAttribute('class', 'joinRoom')
       button.addEventListener('click', function () {
         joinRoom(data.rooms[i].id)
       })
-      button.innerText = 'Join room ' + data.rooms[i].nr
+      button.innerText = 'Join room ' + data.rooms[i].id
       div.appendChild(button)
     }
     let typeSpan = document.createElement('span')
@@ -74,7 +80,7 @@ function createRoomsDataInfoPanel(data) {
 
     container.appendChild(div)
   }
-  document.getElementById('room').textContent = getMyRoomNumber()
+  document.getElementById('room').textContent = getMyRoomId()
   document.getElementById('gametime').textContent = getMyGameData()
   console.log('getMyRoomId()', getMyRoomId())
 }
@@ -147,6 +153,15 @@ function autoJoin() {
   }
 }
 
+function joinPrivateGame(event) {
+  event.preventDefault()
+  const customName = document.querySelector('#private input').value
+  if (customName.trim() !== '') {
+    socket.emit('joinPrivate', customName)
+  } else console.warn('Illegal room name')
+  // console.log('customName', customName)
+}
+
 /**
  * Assign local client id and attach network event handlers.
  *
@@ -172,7 +187,7 @@ function clientSetup() {
     console.log('roomsData', data)
     roomsData = data
     createRoomsDataInfoPanel(data)
-    document.getElementById('room').textContent = getMyRoomNumber()
+    document.getElementById('room').textContent = getMyRoomId()
   })
 
   socket.on('nonBreakingError', function (data) {
@@ -183,6 +198,8 @@ function clientSetup() {
     myGameData = data
     document.getElementById('gametime').textContent = data
   })
+
+  document.getElementById('private').addEventListener('submit', joinPrivateGame)
 }
 
 clientSetup()

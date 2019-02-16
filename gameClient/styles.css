@@ -23,3 +23,16 @@
 .joinRoom {
   margin: 5px;
 }
+
+.mine {
+  color: green !important;
+  font-weight: bold;
+}
+
+#private {
+  margin-top: 35px;
+  padding: 5px;
+  width: 400px;
+  border: 1px solid gray;
+  border-radius: 5px;
+}

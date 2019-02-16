@@ -1,11 +1,12 @@
 _This is work in progress and this document is still a draft._
 
-This project is intended as a JavaScript multiplayer game engine, supporting:
+This project is intended as a JavaScript multiplayer game engine, featuring:
 
 - game rooms for a set amount of players
 - individual game instance per game room
+- public and private game rooms
 - turn-based games
-- (eventually) realtime games
+- realtime games
 
 Run `npm install` and then `npm start`.
 
@@ -13,7 +14,7 @@ NOTE: at this moment, joining a game room means automatically joining the respec
 
 Implementation details:
 
-This engine is an Express.js app, it runs the game server and serves the game client. Realtime communication is handled by Socket.io and based on the following network events:
+This engine is an Express.js app, it runs the game server and serves the game client. Realtime communication is handled by Socket.io library and based on the following network events:
 
 **Server emitted events**:
 

@@ -70,23 +70,22 @@ function startIO(io) {
      *
      * @returns string
      */
-    function getFirstFreeRoom() {
+    function getFirstFreeRoomId() {
       const firstRoomWithEmptySlot = computedRoomsById
         .map(room => ({
           id: room,
-          nr: getNumberFromRoomId(room),
           data: nativeAllActiveRooms[room]
         }))
         .filter(
           entry => entry.data && entry.data.length === config.MAX_ROOM_SIZE - 1
         )[0]
       const firstfreeIndex = firstRoomWithEmptySlot
-        ? firstRoomWithEmptySlot.nr
+        ? getNumberFromRoomId(firstRoomWithEmptySlot)
         : findLowestNumberNotInArray(
           computedRoomsById.map(getNumberFromRoomId).sort(sortAscending)
         )
-      const firstFreeRoom = 'room-' + firstfreeIndex
-      return firstFreeRoom
+      const firstFreeRoomId = 'room-' + firstfreeIndex
+      return firstFreeRoomId
     }
 
     /**
@@ -101,7 +100,6 @@ function startIO(io) {
         computedRoomsById: computedRoomsById,
         rooms: computedRoomsById.map(room => ({
           id: room,
-          nr: getNumberFromRoomId(room),
           type: getRoomType(room),
           data: nativeAllActiveRooms[room]
         }))
@@ -158,9 +156,18 @@ function startIO(io) {
      *
      */
     function autoJoin() {
-      const firstFreeRoom = getFirstFreeRoom()
+      const firstFreeRoomId = getFirstFreeRoomId()
       // console.log('firstfree', firstfree)
-      joinRoomById(firstFreeRoom, 'auto')
+      joinRoomById(firstFreeRoomId, 'auto')
+    }
+
+    /**
+     * Makes socket join custom name - private - room.
+     *
+     */
+    function joinPrivate(roomId) {
+      currentRoom = roomId
+      joinRoomById(currentRoom, 'private')
     }
 
     /**
@@ -169,15 +176,15 @@ function startIO(io) {
      */
     function disconnect() {
       // console.log('A client disconnected.')
+      socket.leave(currentRoom)
+      const i = nativeAllConnectedClients.indexOf(socket)
+      nativeAllConnectedClients.splice(i, 1)
       if (!nativeAllActiveRooms[currentRoom]) {
         computedRoomsById = computedRoomsById.filter(
           room => room !== currentRoom
         )
         computedActiveGamesMap[currentRoom] = null
       }
-      const i = nativeAllConnectedClients.indexOf(socket)
-      nativeAllConnectedClients.splice(i, 1)
-      socket.leave(currentRoom)
       broadcastRoomsData()
     }
 
@@ -211,14 +218,17 @@ function startIO(io) {
     // Auto join newly created room.
     socket.on('autoJoin', autoJoin)
 
-    // Handle client disconnect.
-    socket.on('disconnect', disconnect)
+    // Join a custom named private room.
+    socket.on('joinPrivate', roomId => joinPrivate(roomId))
 
     // Handle client join room by id event.
     socket.on('joinRoomById', roomId => joinRoomById(roomId))
 
     // Handle client leave room by id event.
     socket.on('leaveRoomById', roomId => leaveRoomById(roomId))
+
+    // Handle client disconnect.
+    socket.on('disconnect', disconnect)
 
     // BroadcastRoomsData stats to everyone connected.
     broadcastRoomsData()
