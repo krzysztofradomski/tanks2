@@ -119,14 +119,14 @@ function getMyRoomId() {
 /**
  * Returns connection's active room index, if any.
  *
- * @returns
+ * @returns number or null
  */
-function getMyRoomNumber() {
-  let match = roomsData.rooms.filter(
-    room => room.data && room.data.sockets[myId]
-  )
-  return match[0] ? match[0].nr : null
-}
+// function getMyRoomNumber() {
+//   let match = roomsData.rooms.filter(
+//     room => room.data && room.data.sockets[myId]
+//   )
+//   return match[0] ? match[0].nr : null
+// }
 
 /**
  * Returns connection's room game data.

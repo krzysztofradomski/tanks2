@@ -26,8 +26,9 @@ This engine is an Express.js app, it runs the game server and serves the game cl
 
 **Server handled events**:
 
-- _disconnect_ - handles terminating a connection (native event)
 - _connection_ - sets up new incoming connection server-side (native event)
-- _autoJoin_ - client requests joining first available room
-- _joinRoomById {string}_ - client requests joining room by given id
+- _autoJoin_ - client requests joining first available public room
+- _joinRoomById {string}_ - client requests joining a public room by given id
+- _joinPrivate {string}_ - client requests joining a private room by given id
 - _leaveRoomById {string}_ - client requests leaving room by given id
+- _disconnect_ - handles terminating a connection (native event)
