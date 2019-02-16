@@ -68,6 +68,10 @@ function createRoomsDataInfoPanel(data) {
       button.innerText = 'Join room ' + data.rooms[i].nr
       div.appendChild(button)
     }
+    let typeSpan = document.createElement('span')
+    typeSpan.innerText = data.rooms[i].type.toUpperCase()
+    div.appendChild(typeSpan)
+
     container.appendChild(div)
   }
   document.getElementById('room').textContent = getMyRoomNumber()

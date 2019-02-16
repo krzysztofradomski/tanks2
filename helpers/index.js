@@ -11,8 +11,12 @@ const findLowestNumberNotInArray = arr => {
   return i
 }
 
+const getRoomType = roomId =>
+  RegExp('room', 'ig').test(roomId) ? 'public' : 'private'
+
 module.exports = {
   getNumberFromRoomId,
   sortAscending,
-  findLowestNumberNotInArray
+  findLowestNumberNotInArray,
+  getRoomType
 }

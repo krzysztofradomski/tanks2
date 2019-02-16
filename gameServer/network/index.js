@@ -3,11 +3,12 @@ const config = require('../config')
 const {
   sortAscending,
   findLowestNumberNotInArray,
-  getNumberFromRoomId
+  getNumberFromRoomId,
+  getRoomType
 } = require('../../helpers/index.js')
 
 /**
- * This function sets up the Socket.io communication and shared rooms related namespace.
+ * This function sets up the Socket.io communication and main shared namespace.
  * It requires an Socket.io instance based on the Express server.
  * Variable roomNumber is the initial room index.
  * Variables shared by connections are either computed (managed by event handlers),
@@ -101,6 +102,7 @@ function startIO(io) {
         rooms: computedRoomsById.map(room => ({
           id: room,
           nr: getNumberFromRoomId(room),
+          type: getRoomType(room),
           data: nativeAllActiveRooms[room]
         }))
       }
@@ -129,6 +131,10 @@ function startIO(io) {
     function joinRoomById(roomId, mode) {
       if (
         mode === 'auto' ||
+        (mode === 'private' && !nativeAllActiveRooms[roomId]) ||
+        (mode === 'private' &&
+          nativeAllActiveRooms[roomId].length < config.MAX_ROOM_SIZE &&
+          nativeAllActiveRooms[roomId].sockets[socket.id] === undefined) ||
         (nativeAllActiveRooms[roomId] &&
           nativeAllActiveRooms[roomId].length < config.MAX_ROOM_SIZE &&
           nativeAllActiveRooms[roomId].sockets[socket.id] === undefined)

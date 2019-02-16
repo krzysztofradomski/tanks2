@@ -1,14 +1,16 @@
-.control {
+.control,
+.joinRoom {
   border-radius: 5px;
   margin: 5px;
 }
 
-.control:disabled {
+.control:disabled,
+.joinRoom:disabled {
   opacity: 0.5;
 }
 
 .tile {
-  width: 300px;
+  width: 400px;
   padding: 5px;
   border-top: 1px solid black;
 }
