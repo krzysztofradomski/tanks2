@@ -4,10 +4,11 @@ class Server {
     this.app = this.express()
     this.http = require('http').Server(this.app)
     this.io = require('socket.io')(this.http)
-    this.gameServer = require('../gameServer/network')
+    this.network = require('../gameServer/network')
   }
+
   initialiseSocketCommunication() {
-    this.gameServer(this.io)
+    this.network(this.io)
   }
 
   listen() {

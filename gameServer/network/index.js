@@ -1,3 +1,5 @@
+/* TODO: redesign all of this */
+
 const Game = require('../game')
 const config = require('../config')
 const {
