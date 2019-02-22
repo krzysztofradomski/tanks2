@@ -79,8 +79,12 @@ function startIO(io) {
         .filter(
           entry => entry.data && entry.data.length === config.MAX_ROOM_SIZE - 1
         )[0]
-      const firstfreeIndex = firstRoomWithEmptySlot
-        ? getNumberFromRoomId(firstRoomWithEmptySlot)
+      const firstRoomWithEmptySlotId = firstRoomWithEmptySlot
+        ? firstRoomWithEmptySlot.id
+        : null
+      console.log('firstRoomWithEmptySlotId', firstRoomWithEmptySlotId)
+      const firstfreeIndex = firstRoomWithEmptySlotId
+        ? getNumberFromRoomId(firstRoomWithEmptySlotId)
         : findLowestNumberNotInArray(
           computedRoomsById.map(getNumberFromRoomId).sort(sortAscending)
         )
