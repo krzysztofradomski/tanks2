@@ -1,3 +1,4 @@
-var startServer = require('./gameServer/server')
+const Server = require('./gameServer/server')
 
-startServer()
+const myApp = new Server()
+myApp.start()

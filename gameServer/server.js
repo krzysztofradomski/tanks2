@@ -1,18 +1,30 @@
-const express = require('express')
-const app = express()
-const http = require('http').Server(app)
-const io = require('socket.io')(http)
-const startIO = require('../gameServer/network')
+class Server {
+  constructor() {
+    this.express = require('express')
+    this.app = this.express()
+    this.http = require('http').Server(this.app)
+    this.io = require('socket.io')(this.http)
+    this.gameServer = require('../gameServer/network')
+  }
+  initialiseSocketCommunication() {
+    this.gameServer(this.io)
+  }
 
-function startServer() {
-  // Start client hosting.
-  app.use(express.static('gameClient'))
-  // Start IO
-  startIO(io)
-  // Spin up the web server.
-  http.listen(3000, function () {
-    console.log('Listening on localhost:3000')
-  })
+  listen() {
+    this.http.listen(3000, () => {
+      console.log('Listening on localhost:3000')
+    })
+  }
+
+  serveStaticFiles() {
+    this.app.use(this.express.static('gameClient'))
+  }
+
+  start() {
+    this.serveStaticFiles()
+    this.initialiseSocketCommunication()
+    this.listen()
+  }
 }
 
-module.exports = startServer
+module.exports = Server
