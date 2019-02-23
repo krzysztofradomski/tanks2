@@ -173,7 +173,12 @@ function startIO(io) {
      */
     function joinPrivate(roomId) {
       currentRoom = roomId
-      joinRoomById(currentRoom, 'private')
+      if (getRoomType(currentRoom) === 'private') {
+        joinRoomById(currentRoom, 'private')
+      } else {
+        const message = `Illegal room name ${currentRoom}.`
+        socket.emit('nonBreakingError', message)
+      }
     }
 
     /**

@@ -9,5 +9,9 @@ module.exports = {
         asyncArrow: 'always'
       }
     ]
+  },
+  env: {
+    browser: true,
+    node: true
   }
 }

@@ -1,5 +1,9 @@
 /* This is just a mockup UI */
 
+const getRoomType = roomId =>
+  RegExp('room', 'ig').test(roomId) ? 'public' : 'private'
+const isPrivateRoomNameValid = str => getRoomType(str) === 'private'
+
 // eslint-disable-next-line
 let socket = io()
 
@@ -156,9 +160,9 @@ function autoJoin() {
 function joinPrivateGame(event) {
   event.preventDefault()
   const customName = document.querySelector('#private input').value
-  if (customName.trim() !== '') {
+  if (customName.trim() !== '' && isPrivateRoomNameValid(customName)) {
     socket.emit('joinPrivate', customName)
-  } else console.warn('Illegal room name')
+  } else alert('Illegal room name')
   // console.log('customName', customName)
 }
 
