@@ -1,6 +1,6 @@
 /* TODO: redesign all of this */
 
-const Game = require('../game')
+const Game = require('../game/Game')
 const config = require('../config')
 const {
   sortAscending,
@@ -118,12 +118,13 @@ function startIO(io) {
      *
      * @param {string} roomId
      */
-    function createGameInstance(roomId) {
+    function manageGameInstance(roomId) {
       if (!computedActiveGamesMap[roomId]) {
         // console.log('new game', roomId)
         computedActiveGamesMap[roomId] = new Game(io, roomId)
         computedActiveGamesMap[roomId].start()
       }
+      computedActiveGamesMap[roomId].joinPlayer(socket.id)
     }
 
     /**
@@ -149,7 +150,7 @@ function startIO(io) {
         if (computedRoomsById.indexOf(roomId) < 0) {
           computedRoomsById.push(roomId)
         }
-        createGameInstance(roomId)
+        manageGameInstance(roomId)
         broadcastRoomsData()
       } else {
         const message = `Failed to connect to room ${roomId}.`
@@ -196,6 +197,9 @@ function startIO(io) {
         )
         computedActiveGamesMap[currentRoom] = null
       }
+      if (computedActiveGamesMap[currentRoom]) {
+        computedActiveGamesMap[currentRoom].leavePlayer(socket.id)
+      }
       broadcastRoomsData()
     }
 
@@ -218,6 +222,7 @@ function startIO(io) {
         const i = nativeAllConnectedClients.indexOf(socket)
         nativeAllConnectedClients.splice(i, 1)
         socket.leave(roomId)
+        computedActiveGamesMap[roomId].leavePlayer(socket.id)
         socket.emit('leftRoom', roomId)
         broadcastRoomsData()
       } else {

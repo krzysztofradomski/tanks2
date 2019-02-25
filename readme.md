@@ -8,8 +8,6 @@ This project is intended as a JavaScript multiplayer game engine, featuring:
 - turn-based games
 - realtime games
 
-Run `npm install` and then `npm start`.
-
 NOTE: at this moment, joining a game room means automatically joining the respective game instance.
 
 Implementation details:
@@ -32,3 +30,7 @@ This engine is an Express.js app, it runs the game server and serves the game cl
 - _joinPrivate {string}_ - client requests joining a private room by given id
 - _leaveRoomById {string}_ - client requests leaving room by given id
 - _disconnect_ - handles terminating a connection (native event)
+
+**Usage**
+
+Development: run `npm install` and then `npm start`.

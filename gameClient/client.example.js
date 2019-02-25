@@ -85,7 +85,8 @@ function createRoomsDataInfoPanel(data) {
     container.appendChild(div)
   }
   document.getElementById('room').textContent = getMyRoomId()
-  document.getElementById('gametime').textContent = getMyGameData()
+  document.getElementById('time').textContent = getMyGameTime()
+  document.getElementById('players').textContent = getMyGamePlayers()
   console.log('getMyRoomId()', getMyRoomId())
 }
 
@@ -133,17 +134,22 @@ function getMyRoomId() {
 // }
 
 /**
- * Returns connection's room game data.
+ * Returns connection's room game time.
  *
- * @returns
+ * @returns number or null
  */
-function getMyGameData() {
-  return myGameData
+function getMyGameTime() {
+  return myGameData ? myGameData.time : null
 }
 
-// function getMyId () {
-//   return myId
-// }
+/**
+ * Returns connection's room players.
+ *
+ * @returns [string] or null
+ */
+function getMyGamePlayers() {
+  return myGameData ? myGameData.players : null
+}
 
 /**
  * Join first available room.
@@ -176,6 +182,15 @@ function clientSetup() {
     myId = socket.id
   })
 
+  socket.on('disconnect', function () {
+    console.log('Disconnected')
+    myGameData = null
+    document.getElementById('room').textContent = getMyRoomId()
+    document.getElementById('time').textContent = getMyGameTime()
+    document.getElementById('players').textContent = getMyGamePlayers()
+    console.log('getMyRoomId()', getMyRoomId())
+  })
+
   socket.on('connectedToRoom', function (data) {
     myRoomNumber = data
     document.getElementById('room').textContent = myRoomNumber
@@ -200,7 +215,8 @@ function clientSetup() {
 
   socket.on('gameLoop', function (data) {
     myGameData = data
-    document.getElementById('gametime').textContent = data
+    document.getElementById('time').textContent = data.time
+    document.getElementById('players').textContent = data.players
   })
 
   document.getElementById('private').addEventListener('submit', joinPrivateGame)
