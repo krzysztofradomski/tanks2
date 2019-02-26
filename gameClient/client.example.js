@@ -426,6 +426,7 @@ function enableKeyboardControls() {
       vector: 'x',
       step: -1
     }
+    clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
   }
   left.release = () => {
@@ -437,6 +438,7 @@ function enableKeyboardControls() {
       vector: 'x',
       step: 1
     }
+    clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
   }
   right.release = () => {
@@ -448,6 +450,7 @@ function enableKeyboardControls() {
       vector: 'y',
       step: 1
     }
+    clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
   }
   down.release = () => {
@@ -459,6 +462,7 @@ function enableKeyboardControls() {
       vector: 'y',
       step: -1
     }
+    clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
   }
   up.release = () => {
