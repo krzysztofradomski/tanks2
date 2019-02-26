@@ -7,8 +7,6 @@ const recalculatePosition = pos => {
   if (shouldChangeStep) {
     pos.step = pos.step === 1 ? -1 : 1
   }
-  // const pos.vector = Math.random() > 0.5 ? pos.vector: 'x' : 'y'
-  // const pos.step = Math.random() > 0.5 ? 1 : -1
   return {
     ...pos,
     [pos.vector]: pos[pos.vector] + pos.step
@@ -19,7 +17,6 @@ const moveEnemy = state => ({
   move: () => {
     if (state.alive) {
       state.position = recalculatePosition(state.position)
-      // console.log('move pos', state.position)
     }
     return state
   }

@@ -13,9 +13,17 @@ let myRoomNumber = null
 let myGameData = null
 let myGameDataStream = []
 let enemy = null
+let enemyContainer = null
 let playerA = null
+let playerAContainer = null
 let playerB = null
+let playerBContainer = null
 let app = null
+let keyInterval = null
+let up = null
+let down = null
+let left = null
+let right = null
 
 /**
  * Create buttons to auto join and leave rooms.
@@ -91,6 +99,7 @@ function createRoomsDataInfoPanel(data) {
   }
   document.getElementById('room').textContent = getMyRoomId()
   document.getElementById('time').textContent = getMyGameTime()
+  document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
   document.getElementById('players').textContent = getMyGamePlayers()
   console.log('getMyRoomId()', getMyRoomId())
 }
@@ -147,6 +156,12 @@ function getMyGameTime() {
   return myGameData ? myGameData.time : null
 }
 
+function getMyGamePlayerLabel() {
+  return myGameData
+    ? myGameData.players.filter(player => player.id === myId)[0].label
+    : null
+}
+
 /**
  * Returns connection's room players.
  *
@@ -192,26 +207,37 @@ function clientSetup() {
     myGameData = null
     document.getElementById('room').textContent = getMyRoomId()
     document.getElementById('time').textContent = getMyGameTime()
+    document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
     document.getElementById('players').textContent = getMyGamePlayers()
     console.log('getMyRoomId()', getMyRoomId())
+    app.stage.removeChild(enemyContainer)
+    enemy = null
+    app.stage.removeChild(playerAContainer)
+    playerA = null
+    app.stage.removeChild(playerBContainer)
+    playerB = null
+    disableKeyboardControls()
   })
 
   socket.on('connectedToRoom', function (data) {
     myRoomNumber = data
     document.getElementById('room').textContent = myRoomNumber
+    document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
     console.log('Successfully connected to room: ', myRoomNumber)
+    enableKeyboardControls()
   })
 
   socket.on('leftRoom', function (data) {
     myGameData = null
     console.log('Successfully left room: ', data)
     console.log('myGameDataStream', myGameDataStream)
-    app.stage.removeChild(enemy)
+    app.stage.removeChild(enemyContainer)
     enemy = null
-    app.stage.removeChild(playerA)
+    app.stage.removeChild(playerAContainer)
     playerA = null
-    app.stage.removeChild(playerB)
+    app.stage.removeChild(playerBContainer)
     playerB = null
+    disableKeyboardControls()
   })
 
   socket.on('roomsData', function (data) {
@@ -219,6 +245,9 @@ function clientSetup() {
     roomsData = data
     createRoomsDataInfoPanel(data)
     document.getElementById('room').textContent = getMyRoomId()
+    const myRoom = data.rooms.filter(room => room.id === getMyRoomId())[0]
+    const playersByIds = myRoom ? Object.keys(myRoom.data.sockets) : []
+    playersByIds.forEach(id => console.log('connected player id', id))
   })
 
   socket.on('nonBreakingError', function (data) {
@@ -227,54 +256,102 @@ function clientSetup() {
 
   socket.on('gameLoop', function (data) {
     myGameData = data
-    myGameDataStream.push(data)
-    document.getElementById('time').textContent = getMyGameTime()
-    document.getElementById('players').textContent = getMyGamePlayers()
+    // myGameDataStream.push(data)
+    if (
+      document.getElementById('playerLabel').textContent !==
+      getMyGamePlayerLabel()
+    ) {
+      document.getElementById(
+        'playerLabel'
+      ).textContent = getMyGamePlayerLabel()
+    }
+    if (document.getElementById('time').textContent !== getMyGameTime()) {
+      document.getElementById('time').textContent = getMyGameTime()
+    }
+    if (document.getElementById('players').textContent !== getMyGamePlayers()) {
+      document.getElementById('players').textContent = getMyGamePlayers()
+    }
+
     if (!enemy) {
+      enemyContainer = new PIXI.Container()
       enemy = new PIXI.Graphics()
       enemy.beginFill(0xde3249)
       enemy.drawRect(0, 0, 10, 10)
       enemy.endFill()
-      app.stage.addChild(enemy)
+      enemyContainer.addChild(enemy)
+      const tagStyle = new PIXI.TextStyle({
+        stroke: 0xde3249,
+        fill: 0xde3249
+      })
+      const tag = new PIXI.Text('Enemy', tagStyle)
+      tag.position.set(10, -30)
+      enemyContainer.addChild(tag)
+      app.stage.addChild(enemyContainer)
     }
     if (enemy) {
-      enemy.x = data.enemies[0].position.x
-      enemy.y = data.enemies[0].position.y
+      enemyContainer.x = data.enemies[0].position.x
+      enemyContainer.y = data.enemies[0].position.y
     }
 
     if (!playerA && data.players.some(player => player.label === 'A')) {
+      playerAContainer = new PIXI.Container()
       playerA = new PIXI.Graphics()
       playerA.beginFill(0x3500fa, 1)
       playerA.drawRect(0, 0, 10, 10)
       playerA.endFill()
-      app.stage.addChild(playerA)
+      playerAContainer.addChild(playerA)
+      const tagStyle = new PIXI.TextStyle({
+        stroke: 0x3500fa,
+        fill: 0x3500fa
+      })
+      const tag = new PIXI.Text('Player A', tagStyle)
+      tag.position.set(10, -30)
+      playerAContainer.addChild(tag)
+      app.stage.addChild(playerAContainer)
+    }
+    if (!data.players.some(player => player.label === 'A')) {
+      app.stage.removeChild(playerAContainer)
+      playerA = null
     }
     if (playerA) {
       const x = data.players.filter(player => player.label === 'A')[0].position
         .x
-      console.log('playerA x', x)
-      playerA.x = x
+      // console.log('playerA x', x)
+      playerAContainer.x = x
       const y = data.players.filter(player => player.label === 'A')[0].position
         .y
-      console.log('playerA y', y)
-      playerA.y = y
+      // console.log('playerA y', y)
+      playerAContainer.y = y
     }
     if (!playerB && data.players.some(player => player.label === 'B')) {
+      playerBContainer = new PIXI.Container()
       playerB = new PIXI.Graphics()
       playerB.beginFill(0x35cc5a, 1)
       playerB.drawRect(0, 0, 10, 10)
       playerB.endFill()
-      app.stage.addChild(playerB)
+      playerBContainer.addChild(playerB)
+      const tagStyle = new PIXI.TextStyle({
+        stroke: 0x35cc5a,
+        fill: 0x35cc5a
+      })
+      const tag = new PIXI.Text('Player B', tagStyle)
+      tag.position.set(10, -30)
+      playerBContainer.addChild(tag)
+      app.stage.addChild(playerBContainer)
+    }
+    if (!data.players.some(player => player.label === 'B')) {
+      app.stage.removeChild(playerBContainer)
+      playerB = null
     }
     if (playerB) {
       const x = data.players.filter(player => player.label === 'B')[0].position
         .x
-      console.log('playerB x', x)
-      playerB.x = x
+      // console.log('playerB x', x)
+      playerBContainer.x = x
       const y = data.players.filter(player => player.label === 'B')[0].position
         .y
-      console.log('playerA B', y)
-      playerB.y = y
+      // console.log('playerA B', y)
+      playerBContainer.y = y
     }
   })
 
@@ -335,49 +412,67 @@ function keyboard(value) {
   return key
 }
 
+function enableKeyboardControls() {
+  left = keyboard('ArrowLeft')
+
+  up = keyboard('ArrowUp')
+
+  right = keyboard('ArrowRight')
+
+  down = keyboard('ArrowDown')
+
+  left.press = () => {
+    const data = {
+      vector: 'x',
+      step: -1
+    }
+    keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
+  }
+  left.release = () => {
+    clearInterval(keyInterval)
+  }
+
+  right.press = () => {
+    const data = {
+      vector: 'x',
+      step: 1
+    }
+    keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
+  }
+  right.release = () => {
+    clearInterval(keyInterval)
+  }
+
+  down.press = () => {
+    const data = {
+      vector: 'y',
+      step: 1
+    }
+    keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
+  }
+  down.release = () => {
+    clearInterval(keyInterval)
+  }
+
+  up.press = () => {
+    const data = {
+      vector: 'y',
+      step: -1
+    }
+    keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
+  }
+  up.release = () => {
+    clearInterval(keyInterval)
+  }
+}
+
+function disableKeyboardControls() {
+  clearInterval(keyInterval)
+  up.unsubscribe()
+  down.unsubscribe()
+  left.unsubscribe()
+  right.unsubscribe()
+}
+
 clientSetup()
 setupPixi()
-
-let left = keyboard('ArrowLeft')
-
-let up = keyboard('ArrowUp')
-
-let right = keyboard('ArrowRight')
-
-let down = keyboard('ArrowDown')
-
-left.press = () => {
-  console.log('left')
-  const data = {
-    vector: 'x',
-    step: -1
-  }
-  socket.emit('playerMove', data)
-}
-
-right.press = () => {
-  console.log('right')
-  const data = {
-    vector: 'x',
-    step: 1
-  }
-  socket.emit('playerMove', data)
-}
-
-down.press = () => {
-  console.log('down')
-  const data = {
-    vector: 'y',
-    step: 1
-  }
-  socket.emit('playerMove', data)
-}
-
-up.press = () => {
-  console.log('up')
-  const data = {
-    vector: 'y',
-    step: -1
-  }
-  socket.emit('playerMove', data)
-}

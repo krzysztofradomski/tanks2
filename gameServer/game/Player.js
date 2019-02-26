@@ -6,7 +6,6 @@ const movePlayer = state => ({
       vector: vector,
       step: step
     }
-    console.log('move pos', state.position)
     return state
   }
 })
@@ -23,7 +22,7 @@ const Player = ({ id, label, size = 10, stageSize = 480 }) => {
       vector: 'x',
       step: 1,
       x: label === 'A' ? 0 : stageSize - size,
-      y: label === 'A' ? stageSize - size : 0
+      y: stageSize - size
     }
   }
   return Object.assign(state, movePlayer(state))

@@ -232,9 +232,7 @@ function startIO(io) {
     }
 
     function playerMove(data) {
-      console.log('playerMove')
       if (computedActiveGamesMap[currentRoom]) {
-        console.log('playerMove if')
         computedActiveGamesMap[currentRoom].movePlayer({
           id: socket.id,
           ...data

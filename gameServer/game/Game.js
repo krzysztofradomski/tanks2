@@ -67,11 +67,9 @@ class Game {
   }
 
   movePlayer(data) {
-    console.log('game move player')
     const { id, ...rest } = data
     const player = this.players.filter(player => player.id === id)[0]
     if (player) {
-      console.log('game movePlayer if player')
       player.move(rest)
     }
   }
@@ -87,17 +85,17 @@ class Game {
 
   collisionsCheck() {
     this.enemies.forEach(enemy => {
-      if (enemy.position.x >= this.stageSize) {
+      if (enemy.position.x >= this.stageSize - enemy.size) {
         enemy.position.x = this.stageSize - enemy.size
       }
-      if (enemy.position.y >= this.stageSize) {
+      if (enemy.position.y >= this.stageSize - enemy.size) {
         enemy.position.y = this.stageSize - enemy.size
       }
-      if (enemy.position.x <= 0) {
-        enemy.position.x = 0
+      if (enemy.position.x <= enemy.size) {
+        enemy.position.x = enemy.size
       }
-      if (enemy.position.y <= 0) {
-        enemy.position.y = 0
+      if (enemy.position.y <= enemy.size) {
+        enemy.position.y = enemy.size
       }
     })
   }
