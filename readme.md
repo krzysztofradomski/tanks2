@@ -1,4 +1,4 @@
-_This is work in progress and this document is still a draft._
+**_This is work in progress and this document is still a draft._**
 
 This project is intended as a JavaScript multiplayer game engine, featuring:
 
@@ -31,9 +31,9 @@ This engine is an Express.js app, it runs the game server and serves the game cl
 - _joinPrivate {string}_ - client requests joining a private room by given id
 - _leaveRoomById {string}_ - client requests leaving room by given id
 - _disconnect_ - handles terminating a connection (native event)
-- _playerMove {object}_ - handles player avatar movement control
+- _playerMove {object}_ - handles player avatar movement commands
 
 **Usage**
 
-Development: run `npm install` and then `npm start`.
-Build: ...
+- Hot development: `npm run dev`.
+- Regular use: `npm run start`
