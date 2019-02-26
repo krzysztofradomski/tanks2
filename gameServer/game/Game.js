@@ -1,4 +1,6 @@
 const Enemy = require('./Enemy')
+
+const Player = require('./Player')
 class Game {
   constructor(io, roomId) {
     this.io = io
@@ -7,13 +9,16 @@ class Game {
     this.running = false
     this.interval = null
     this.framerate = 1000 / 30
+    this.enemySize = 10
     this.stageSize = 480
     this.playersById = []
     this.enemies = []
+    this.players = []
   }
 
   start() {
     if (this.running === false) {
+      this.addEnemy()
       this.running = true
       this.scheduleNextTick()
     }
@@ -28,7 +33,8 @@ class Game {
     const gameData = {
       time: this.time,
       enemies: this.enemies,
-      players: this.playersById
+      players: this.players,
+      playersById: this.playersById
     }
     this.io.to(this.id).emit('gameLoop', gameData)
     this.scheduleNextTick()
@@ -37,6 +43,7 @@ class Game {
   gameLoop() {
     this.time++
     this.enemies.forEach(enemy => enemy.move())
+    this.collisionsCheck()
   }
 
   stop() {
@@ -47,30 +54,50 @@ class Game {
   }
 
   joinPlayer(id) {
-    this.playersById.push(id)
+    const label = this.playersById.length === 0 ? 'A' : 'B'
+    if (this.playersById.indexOf(id) < 0) {
+      this.playersById.push(id)
+      this.players.push(Player({ id, label }))
+    }
   }
 
   leavePlayer(id) {
-    this.playersById = this.playersById.filter(player => player !== id)
+    this.playersById = this.playersById.filter(playerId => playerId !== id)
+    this.players = this.players.filter(player => player.id !== id)
+  }
+
+  movePlayer(data) {
+    console.log('game move player')
+    const { id, ...rest } = data
+    const player = this.players.filter(player => player.id === id)[0]
+    if (player) {
+      console.log('game movePlayer if player')
+      player.move(rest)
+    }
   }
 
   addEnemy() {
-    this.enemies.push(Enemy(`enemy-${Date.now()}`))
+    const e = Enemy({
+      id: `enemy-${Date.now()}`,
+      size: this.enemySize,
+      stageSize: this.stageSize
+    })
+    this.enemies.push(e)
   }
 
   collisionsCheck() {
     this.enemies.forEach(enemy => {
       if (enemy.position.x >= this.stageSize) {
-        enemy.position.x = this.stageSize - this.enemy.size
+        enemy.position.x = this.stageSize - enemy.size
       }
       if (enemy.position.y >= this.stageSize) {
-        enemy.position.y = this.stageSize - this.enemy.size
+        enemy.position.y = this.stageSize - enemy.size
       }
       if (enemy.position.x <= 0) {
-        enemy.position.x = this.enemy.size
+        enemy.position.x = 0
       }
       if (enemy.position.y <= 0) {
-        enemy.position.y = this.enemy.size
+        enemy.position.y = 0
       }
     })
   }

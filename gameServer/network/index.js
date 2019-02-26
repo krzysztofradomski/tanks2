@@ -231,6 +231,17 @@ function startIO(io) {
       }
     }
 
+    function playerMove(data) {
+      console.log('playerMove')
+      if (computedActiveGamesMap[currentRoom]) {
+        console.log('playerMove if')
+        computedActiveGamesMap[currentRoom].movePlayer({
+          id: socket.id,
+          ...data
+        })
+      }
+    }
+
     // Auto join newly created room.
     socket.on('autoJoin', autoJoin)
 
@@ -245,6 +256,9 @@ function startIO(io) {
 
     // Handle client disconnect.
     socket.on('disconnect', disconnect)
+
+    // Handle player move.
+    socket.on('playerMove', data => playerMove(data))
 
     // BroadcastRoomsData stats to everyone connected.
     broadcastRoomsData()
