@@ -78,6 +78,7 @@ function startIO(io) {
           id: room,
           data: nativeAllActiveRooms[room]
         }))
+        .filter(room => getRoomType(room.id) === 'public')
         .filter(
           entry => entry.data && entry.data.length === config.MAX_ROOM_SIZE - 1
         )[0]
