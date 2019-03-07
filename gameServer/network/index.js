@@ -146,6 +146,7 @@ function startIO(io) {
       ) {
         socket.join(roomId)
         socket.emit('connectedToRoom', roomId)
+        currentRoom = roomId
         // Update computedRoomsById with current room id.
         if (computedRoomsById.indexOf(roomId) < 0) {
           computedRoomsById.push(roomId)
