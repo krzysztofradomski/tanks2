@@ -54,7 +54,7 @@ class Game {
   }
 
   joinPlayer(id) {
-    const label = this.playersById.length === 0 ? 'A' : 'B'
+    const label = this.players.some(player => player.label === 'A') ? 'B' : 'A'
     if (this.playersById.indexOf(id) < 0) {
       this.playersById.push(id)
       this.players.push(Player({ id, label }))

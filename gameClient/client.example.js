@@ -10,6 +10,7 @@ let socket = io()
 let roomsData = null
 let myId = null
 let myRoomNumber = null
+let myRoomId = null
 let myGameData = null
 let myGameDataStream = []
 let enemy = null
@@ -129,9 +130,9 @@ function leaveRoom(roomId) {
  * @returns string
  */
 function getMyRoomId() {
-  let match = roomsData.rooms.filter(
-    room => room.data && room.data.sockets[myId]
-  )
+  let match = roomsData
+    ? roomsData.rooms.filter(room => room.data && room.data.sockets[myId])
+    : []
   return match[0] ? match[0].id : null
 }
 
@@ -221,6 +222,7 @@ function clientSetup() {
 
   socket.on('connectedToRoom', function (data) {
     myRoomNumber = data
+    myRoomId = getMyRoomId()
     document.getElementById('room').textContent = myRoomNumber
     document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
     console.log('Successfully connected to room: ', myRoomNumber)
@@ -238,9 +240,11 @@ function clientSetup() {
     app.stage.removeChild(playerBContainer)
     playerB = null
     disableKeyboardControls()
+    myRoomId = getMyRoomId()
   })
 
   socket.on('roomsData', function (data) {
+    myRoomId = getMyRoomId()
     console.log('roomsData', data)
     roomsData = data
     createRoomsDataInfoPanel(data)
@@ -413,6 +417,7 @@ function keyboard(value) {
 }
 
 function enableKeyboardControls() {
+  myRoomId = getMyRoomId()
   left = keyboard('ArrowLeft')
 
   up = keyboard('ArrowUp')
@@ -423,6 +428,7 @@ function enableKeyboardControls() {
 
   left.press = () => {
     const data = {
+      roomId: getMyRoomId(),
       vector: 'x',
       step: -1
     }
@@ -435,6 +441,7 @@ function enableKeyboardControls() {
 
   right.press = () => {
     const data = {
+      roomId: getMyRoomId(),
       vector: 'x',
       step: 1
     }
@@ -447,6 +454,7 @@ function enableKeyboardControls() {
 
   down.press = () => {
     const data = {
+      roomId: getMyRoomId(),
       vector: 'y',
       step: 1
     }
@@ -459,6 +467,7 @@ function enableKeyboardControls() {
 
   up.press = () => {
     const data = {
+      roomId: getMyRoomId(),
       vector: 'y',
       step: -1
     }

@@ -232,8 +232,9 @@ function startIO(io) {
     }
 
     function playerMove(data) {
-      if (computedActiveGamesMap[currentRoom]) {
-        computedActiveGamesMap[currentRoom].movePlayer({
+      console.log('data.roomId', data)
+      if (computedActiveGamesMap[data.roomId]) {
+        computedActiveGamesMap[data.roomId].movePlayer({
           id: socket.id,
           ...data
         })
