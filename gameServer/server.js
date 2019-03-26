@@ -1,14 +1,15 @@
+const IOServer = require('../gameServer/network')
 class Server {
   constructor() {
     this.express = require('express')
     this.app = this.express()
     this.http = require('http').Server(this.app)
     this.io = require('socket.io')(this.http)
-    this.network = require('../gameServer/network')
+    this.ioServer = new IOServer(this.io)
   }
 
   initialiseSocketCommunication() {
-    this.network(this.io)
+    this.ioServer.start()
   }
 
   listen() {

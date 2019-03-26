@@ -10,7 +10,8 @@ const {
 } = require('../../helpers/index.js')
 
 /**
- * This function sets up the Socket.io communication and main shared namespace.
+ * This class sets up the Socket.io communication and shared namespace.
+ * It's a singleton!
  * It requires an Socket.io instance based on the Express server.
  * Variable roomNumber is the initial room index.
  * Variables shared by connections are either computed (managed by event handlers),
@@ -18,12 +19,16 @@ const {
  *
  * @param {object} io
  */
-function startIO(io) {
-  let roomNumber = 1
-  let computedRoomsById = []
-  const nativeAllConnectedClients = []
-  const nativeAllActiveRooms = io.nsps['/'].adapter.rooms
-  const computedActiveGamesMap = {}
+class IOServer {
+  constructor(io) {
+    this.io = io
+    this.roomNumber = 1
+    this.computedRoomsById = []
+    this.nativeAllConnectedClients = []
+    this.nativeAllActiveRooms = this.io.nsps['/'].adapter.rooms
+    this.computedActiveGamesMap = {}
+    this.handleConnection = this.handleConnection.bind(this)
+  }
 
   /**
    * This function is the basic connection event handler and unique connection namespace.
@@ -31,37 +36,37 @@ function startIO(io) {
    *
    * @param {object} socket
    */
-  function handleConnection(socket) {
+  handleConnection(socket) {
     console.log('Connected socket id: ', socket.id)
     // Keep track of all clients, for future use now.
-    nativeAllConnectedClients.push(socket)
+    this.nativeAllConnectedClients.push(socket)
 
     // Setup a room.
-    let currentRoom = `room-${roomNumber}`
+    let currentRoom = `room-${this.roomNumber}`
     // Increase roomNumber if MAX_ROOM_SIZE clients are present in a room.
     if (
-      nativeAllActiveRooms[currentRoom] &&
-      nativeAllActiveRooms[currentRoom].length === config.MAX_ROOM_SIZE
+      this.nativeAllActiveRooms[currentRoom] &&
+      this.nativeAllActiveRooms[currentRoom].length === config.MAX_ROOM_SIZE
     ) {
-      roomNumber++
-      currentRoom = `room-${roomNumber}`
+      this.roomNumber++
+      currentRoom = `room-${this.roomNumber}`
     }
 
     /**
      *  Deletes empty rooms.
      */
-    function clearEmptyRooms() {
-      computedRoomsById = computedRoomsById.filter(room => {
-        if (nativeAllActiveRooms[room]) {
+    const clearEmptyRooms = () => {
+      this.computedRoomsById = this.computedRoomsById.filter(room => {
+        if (this.nativeAllActiveRooms[room]) {
           return room
         }
       })
       if (
-        !nativeAllActiveRooms[currentRoom] &&
-        computedActiveGamesMap[currentRoom]
+        !this.nativeAllActiveRooms[currentRoom] &&
+        this.computedActiveGamesMap[currentRoom]
       ) {
-        computedActiveGamesMap[currentRoom].stop()
-        computedActiveGamesMap[currentRoom] = null
+        this.computedActiveGamesMap[currentRoom].stop()
+        this.computedActiveGamesMap[currentRoom] = null
       }
     }
 
@@ -72,11 +77,11 @@ function startIO(io) {
      *
      * @returns string
      */
-    function getFirstFreeRoomId() {
-      const firstRoomWithEmptySlot = computedRoomsById
+    const getFirstFreeRoomId = () => {
+      const firstRoomWithEmptySlot = this.computedRoomsById
         .map(room => ({
           id: room,
-          data: nativeAllActiveRooms[room]
+          data: this.nativeAllActiveRooms[room]
         }))
         .filter(room => getRoomType(room.id) === 'public')
         .filter(
@@ -89,7 +94,7 @@ function startIO(io) {
       const firstfreeIndex = firstRoomWithEmptySlotId
         ? getNumberFromRoomId(firstRoomWithEmptySlotId)
         : findLowestNumberNotInArray(
-          computedRoomsById.map(getNumberFromRoomId).sort(sortAscending)
+          this.computedRoomsById.map(getNumberFromRoomId).sort(sortAscending)
         )
       const firstFreeRoomId = 'room-' + firstfreeIndex
       return firstFreeRoomId
@@ -100,18 +105,18 @@ function startIO(io) {
      * Emits object.
      *
      */
-    function broadcastRoomsData() {
+    const broadcastRoomsData = () => {
       clearEmptyRooms()
       const roomsData = {
-        amount: computedRoomsById.length,
-        computedRoomsById: computedRoomsById,
-        rooms: computedRoomsById.map(room => ({
+        amount: this.computedRoomsById.length,
+        computedRoomsById: this.computedRoomsById,
+        rooms: this.computedRoomsById.map(room => ({
           id: room,
           type: getRoomType(room),
-          data: nativeAllActiveRooms[room]
+          data: this.nativeAllActiveRooms[room]
         }))
       }
-      io.emit('roomsData', roomsData)
+      this.io.emit('roomsData', roomsData)
     }
 
     /**
@@ -119,13 +124,13 @@ function startIO(io) {
      *
      * @param {string} roomId
      */
-    function manageGameInstance(roomId) {
-      if (!computedActiveGamesMap[roomId]) {
+    const manageGameInstance = roomId => {
+      if (!this.computedActiveGamesMap[roomId]) {
         // console.log('new game', roomId)
-        computedActiveGamesMap[roomId] = new Game(io, roomId)
-        computedActiveGamesMap[roomId].start()
+        this.computedActiveGamesMap[roomId] = new Game(this.io, roomId)
+        this.computedActiveGamesMap[roomId].start()
       }
-      computedActiveGamesMap[roomId].joinPlayer(socket.id)
+      this.computedActiveGamesMap[roomId].joinPlayer(socket.id)
     }
 
     /**
@@ -134,23 +139,23 @@ function startIO(io) {
      * @param {string} roomId
      * @param {string} mode
      */
-    function joinRoomById(roomId, mode) {
+    const joinRoomById = (roomId, mode) => {
       if (
         mode === 'auto' ||
-        (mode === 'private' && !nativeAllActiveRooms[roomId]) ||
+        (mode === 'private' && !this.nativeAllActiveRooms[roomId]) ||
         (mode === 'private' &&
-          nativeAllActiveRooms[roomId].length < config.MAX_ROOM_SIZE &&
-          nativeAllActiveRooms[roomId].sockets[socket.id] === undefined) ||
-        (nativeAllActiveRooms[roomId] &&
-          nativeAllActiveRooms[roomId].length < config.MAX_ROOM_SIZE &&
-          nativeAllActiveRooms[roomId].sockets[socket.id] === undefined)
+          this.nativeAllActiveRooms[roomId].length < config.MAX_ROOM_SIZE &&
+          this.nativeAllActiveRooms[roomId].sockets[socket.id] === undefined) ||
+        (this.nativeAllActiveRooms[roomId] &&
+          this.nativeAllActiveRooms[roomId].length < config.MAX_ROOM_SIZE &&
+          this.nativeAllActiveRooms[roomId].sockets[socket.id] === undefined)
       ) {
         socket.join(roomId)
         socket.emit('connectedToRoom', roomId)
         currentRoom = roomId
         // Update computedRoomsById with current room id.
-        if (computedRoomsById.indexOf(roomId) < 0) {
-          computedRoomsById.push(roomId)
+        if (this.computedRoomsById.indexOf(roomId) < 0) {
+          this.computedRoomsById.push(roomId)
         }
         manageGameInstance(roomId)
         broadcastRoomsData()
@@ -164,7 +169,7 @@ function startIO(io) {
      * Makes socket automatically join first available room.
      *
      */
-    function autoJoin() {
+    const autoJoin = () => {
       const firstFreeRoomId = getFirstFreeRoomId()
       // console.log('firstfree', firstfree)
       joinRoomById(firstFreeRoomId, 'auto')
@@ -174,7 +179,7 @@ function startIO(io) {
      * Makes socket join custom name - private - room.
      *
      */
-    function joinPrivate(roomId) {
+    const joinPrivate = roomId => {
       currentRoom = roomId
       if (getRoomType(currentRoom) === 'private') {
         joinRoomById(currentRoom, 'private')
@@ -188,19 +193,19 @@ function startIO(io) {
      * Handles native disconnect event.
      *
      */
-    function disconnect() {
+    const disconnect = () => {
       // console.log('A client disconnected.')
       socket.leave(currentRoom)
-      const i = nativeAllConnectedClients.indexOf(socket)
-      nativeAllConnectedClients.splice(i, 1)
-      if (!nativeAllActiveRooms[currentRoom]) {
-        computedRoomsById = computedRoomsById.filter(
+      const i = this.nativeAllConnectedClients.indexOf(socket)
+      this.nativeAllConnectedClients.splice(i, 1)
+      if (!this.nativeAllActiveRooms[currentRoom]) {
+        this.computedRoomsById = this.computedRoomsById.filter(
           room => room !== currentRoom
         )
-        computedActiveGamesMap[currentRoom] = null
+        this.computedActiveGamesMap[currentRoom] = null
       }
-      if (computedActiveGamesMap[currentRoom]) {
-        computedActiveGamesMap[currentRoom].leavePlayer(socket.id)
+      if (this.computedActiveGamesMap[currentRoom]) {
+        this.computedActiveGamesMap[currentRoom].leavePlayer(socket.id)
       }
       broadcastRoomsData()
     }
@@ -211,20 +216,22 @@ function startIO(io) {
      *
      * @param {number} roomNumber
      */
-    function leaveRoomById(roomId) {
-      if (!nativeAllActiveRooms[roomId]) {
+    const leaveRoomById = roomId => {
+      if (!this.nativeAllActiveRooms[roomId]) {
         console.log('empty room')
-        computedRoomsById = computedRoomsById.filter(r => r !== roomId)
-        computedActiveGamesMap[currentRoom] = null
+        this.computedRoomsById = this.computedRoomsById.filter(
+          r => r !== roomId
+        )
+        this.computedActiveGamesMap[currentRoom] = null
       }
       if (
-        nativeAllActiveRooms[roomId] &&
-        nativeAllActiveRooms[roomId].sockets[socket.id] !== undefined
+        this.nativeAllActiveRooms[roomId] &&
+        this.nativeAllActiveRooms[roomId].sockets[socket.id] !== undefined
       ) {
-        const i = nativeAllConnectedClients.indexOf(socket)
-        nativeAllConnectedClients.splice(i, 1)
+        const i = this.nativeAllConnectedClients.indexOf(socket)
+        this.nativeAllConnectedClients.splice(i, 1)
         socket.leave(roomId)
-        computedActiveGamesMap[roomId].leavePlayer(socket.id)
+        this.computedActiveGamesMap[roomId].leavePlayer(socket.id)
         socket.emit('leftRoom', roomId)
         broadcastRoomsData()
       } else {
@@ -233,10 +240,10 @@ function startIO(io) {
       }
     }
 
-    function playerMove(data) {
+    const playerMove = data => {
       console.log('data.roomId', data)
-      if (computedActiveGamesMap[data.roomId]) {
-        computedActiveGamesMap[data.roomId].movePlayer({
+      if (this.computedActiveGamesMap[data.roomId]) {
+        this.computedActiveGamesMap[data.roomId].movePlayer({
           id: socket.id,
           ...data
         })
@@ -265,7 +272,9 @@ function startIO(io) {
     broadcastRoomsData()
   }
 
-  io.on('connection', handleConnection)
+  start() {
+    this.io.on('connection', this.handleConnection)
+  }
 }
 
-module.exports = startIO
+module.exports = IOServer
