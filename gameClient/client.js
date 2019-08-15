@@ -185,7 +185,7 @@ function getMyRoomId() {
  * @returns number or null
  */
 function getMyGameTime() {
-  return myGameData ? myGameData.time : null
+  return myGameData ? parseInt(myGameData.time) : 0
 }
 
 function getMyGamePlayerLabel() {
@@ -200,7 +200,9 @@ function getMyGamePlayerLabel() {
  * @returns [string] or null
  */
 function getMyGamePlayers() {
-  return myGameData ? myGameData.playersById : null
+  return myGameData
+    ? myGameData.playersById.map((p, i) => (i === 0 ? (p = p + ' (you)') : p))
+    : null
 }
 
 /**

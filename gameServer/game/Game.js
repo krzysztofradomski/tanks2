@@ -8,6 +8,7 @@ class Game {
     this.time = 0
     this.running = false
     this.interval = null
+    // game and physics run at 30 fps, just like our japanese masters envisioned
     this.framerate = 1000 / 30
     this.enemySize = 10
     this.stageSize = 480
@@ -41,7 +42,7 @@ class Game {
   }
 
   gameLoop() {
-    this.time++
+    this.time = this.time + 1000 / 30 / 1000
     this.enemies.forEach(enemy => enemy.move())
     this.collisionsCheck()
   }

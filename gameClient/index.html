@@ -20,55 +20,49 @@
     <script src="pixi.min.js"></script>
   </head>
   <body>
-    <div id="controls"></div>
-    <p>You are in room: <span id="room"></span></p>
-    <p>You are player: <span id="playerLabel"></span></p>
-    <p>
-      Your gametime and players' ids (basic game data for your room):
-      <br />
-      time:
-      <br />
-      <span id="time"></span>
-      <br />
-      players: <br />
-      <span id="players"></span>
-    </p>
-
-    <p>Active rooms:</p>
-    <div id="rooms"></div>
-
-    <form id="private">
+    <stats class="stats" id="stats">
+      <div class="stats stats_header">
+        <p>Active rooms:  <span id="rooms"></span></p>
+       
+        <p>You are in room: <span id="room"></span></p>
+        <p>You are player: <span id="playerLabel"></span></p>
+        <p>
+          Your gametime and players' ids (basic game data for your room):
+          <br />
+          time:
+          <span id="time">0</span>s,
+          players:
+          <span id="players"></span>
+        </p>
+      </div>
+      <div class="stats stats_players">
+        <playerA class="playerA">
+          <p>PlayerA Score: <span class="scoreValue"></span></p>
+          <p>PlayerA Lives: <span class="livesValue"></span></p>
+        </playerA>
+        <playerB class=" playerB">
+          <p>PlayerB Score: <span class="scoreValue"></span></p>
+          <p>PlayerB Lives: <span class="livesValue"></span></p>
+        </playerB>
+      </div>
+    </stats>
+    <canva></canva>
+    <controls class="controls" id="controls">
+      Move: arrows (⇦ ⇨ ⇧ ⇩), shoot: 'Q'.
+    </controls>
+    <gameove class="gameover">
+      <h2>GAME OVER</h2>
+    </gameover>
+    <topscores class="topscores">
+      <p>1st place:</p>
+      <p>2nd place:</p>
+      <p>3rd place:</p>
+    </topscores>
+    <form class="private" id="private">
       Join private room by id (room name):<br />
       <input type="text" name="room" placeholder="Type room name here" />
       <br /><br />
       <input type="submit" name="joinPrivate" value="Join game" />
     </form>
-    <stats>
-      <playerA>
-        <p>PlayerA Score: <span class="scoreValue"></span></p>
-        <p>PlayerA Lives: <span class="livesValue"></span></p>
-      </playerA>
-      <playerB>
-        <p>PlayerB Score: <span class="scoreValue"></span></p>
-        <p>PlayerB Lives: <span class="livesValue"></span></p>
-      </playerB>
-    </stats>
-    <canva></canva>
-    <controls>
-      <button type="button" disabled id="start">Join battle</button>
-      <button type="button" disabled id="reload" onclick="location.reload()">
-        Reload
-      </button>
-      <button type="button" disabled id="roundNumber">Round: 1</button>
-      Move: arrows (⇦ ⇨ ⇧ ⇩), shoot: 'Q'.
-    </controls>
-    <gameover>
-      <h2>GAME OVER</h2>
-    </gameover>
-    <topscores>
-      <p>1st place:</p>
-      <p>2nd place:</p>
-      <p>3rd place:</p>
-    </topscores>
   </body>
 </html>

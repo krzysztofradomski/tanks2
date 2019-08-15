@@ -1,6 +1,7 @@
 * {
   font-family: monospace;
   font-size: 13px;
+  box-sizing: border-box;
 }
 
 body {
@@ -8,7 +9,8 @@ body {
   margin: 0;
 }
 
-button {
+button,
+input {
   color: white;
   background-color: black;
   border: 1px solid black;
@@ -33,24 +35,26 @@ canvas {
   border: 1px solid white;
 }
 
-stats,
-topscores {
+.stats,
+.topscores,
+.private {
   display: block;
   width: 500px;
   margin-left: auto;
   margin-right: auto;
 }
 
-stats>* {
-  width: 49%;
+.stats > *,
+.private > * {
+  width: 100%;
   margin-right: 0;
   margin-left: 0;
   display: inline-block;
-  ;
 }
 
-stats > * > p,
-topscores > p {
+.stats > * > p,
+.topscores > p,
+.private * {
   background: black;
   padding: 5px;
   color: white;
@@ -58,15 +62,17 @@ topscores > p {
   margin-bottom: 5px;
 }
 
-playera {
+.playerA {
   text-align: left;
+  width: 49%;
 }
 
-playerb {
+.playerB {
   text-align: right;
+  width: 49%;
 }
 
-controls {
+.controls {
   width: 500px;
   display: block;
   margin-left: auto;
@@ -74,7 +80,7 @@ controls {
   font-weight: bold;
 }
 
-gameover h2 {
+.gameover h2 {
   position: absolute;
   top: -1000px;
   width: 95%;
