@@ -25,6 +25,36 @@ let up = null
 let down = null
 let left = null
 let right = null
+let sprites = new Image()
+sprites.src = 'sprites.png'
+const enemyTanksPositions = {
+  x: 240,
+  '-x': 161,
+  y: 208,
+  '-y': 130,
+  '1': 0,
+  '2': 16,
+  '3': 32,
+  '4': 48,
+  '5': 64,
+  '6': 80,
+  '7': 96,
+  '8': 112
+}
+const playerPositions = {
+  x: 95,
+  '-x': 50,
+  y: 65,
+  '-y': 0,
+  playerA: 0,
+  playerB: 129
+}
+const enemyExplosionPosition = {
+  x: -50,
+  y: -50
+}
+let gameNumber = null
+let scoresData = null
 
 /**
  * Create buttons to auto join and leave rooms.
@@ -377,7 +407,8 @@ function setupPixi() {
 
   PIXI.utils.sayHello(type)
   app = new PIXI.Application({ width: 480, height: 480 })
-  document.body.appendChild(app.view)
+
+  document.querySelector('canva').appendChild(app.view)
 }
 
 function keyboard(value) {
