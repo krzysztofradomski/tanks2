@@ -5,7 +5,7 @@ const getRoomType = roomId =>
 const isPrivateRoomNameValid = str => getRoomType(str) === 'private'
 
 // eslint-disable-next-line
-let socket = io()
+let socket = io();
 
 let roomsData = null
 let myId = null
@@ -47,7 +47,8 @@ function createControls() {
     button.innerText = controls[i].label
     container.appendChild(button)
   }
-  document.getElementsByName('joinPrivate')[0].disabled = getMyRoomId() !== null
+  document.getElementsByName('joinPrivate')[0].disabled =
+    getMyRoomId() !== null
 }
 
 /**
@@ -184,6 +185,10 @@ function autoJoin() {
   }
 }
 
+/**
+ * Join private room.
+ *
+ */
 function joinPrivateGame(event) {
   event.preventDefault()
   const customName = document.querySelector('#private input').value
@@ -359,7 +364,9 @@ function clientSetup() {
     }
   })
 
-  document.getElementById('private').addEventListener('submit', joinPrivateGame)
+  document
+    .getElementById('private')
+    .addEventListener('submit', joinPrivateGame)
 }
 
 function setupPixi() {
@@ -411,7 +418,7 @@ function keyboard(value) {
   key.unsubscribe = () => {
     window.removeEventListener('keydown', downListener)
     window.removeEventListener('keyup', upListener)
-  }
+  };
 
   return key
 }
@@ -434,10 +441,10 @@ function enableKeyboardControls() {
     }
     clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
-  }
+  };
   left.release = () => {
     clearInterval(keyInterval)
-  }
+  };
 
   right.press = () => {
     const data = {
@@ -447,10 +454,10 @@ function enableKeyboardControls() {
     }
     clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
-  }
+  };
   right.release = () => {
     clearInterval(keyInterval)
-  }
+  };
 
   down.press = () => {
     const data = {
@@ -460,10 +467,10 @@ function enableKeyboardControls() {
     }
     clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
-  }
+  };
   down.release = () => {
     clearInterval(keyInterval)
-  }
+  };
 
   up.press = () => {
     const data = {
@@ -473,10 +480,10 @@ function enableKeyboardControls() {
     }
     clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
-  }
+  };
   up.release = () => {
     clearInterval(keyInterval)
-  }
+  };
 }
 
 function disableKeyboardControls() {
