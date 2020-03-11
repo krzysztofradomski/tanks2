@@ -13,7 +13,7 @@ class Server {
   }
 
   listen() {
-    this.http.listen(3000, () => {
+    this.http.listen(process.env.PORT || 3000, () => {
       console.log('Listening on localhost:3000')
     })
   }
