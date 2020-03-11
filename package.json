@@ -1,7 +1,7 @@
 {
   "name": "multi-engine",
   "version": "1.0.0",
-  "description": "multiplayer game engine base",
+  "description": "multiplayer tank game",
   "scripts": {
     "dev": "nodemon index.js",
     "start": "node index.js"
@@ -35,10 +35,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/krzysztofradomski/multi-engine.git"
+    "url": "git+https://github.com/krzysztofradomski/tanks2.git"
   },
   "bugs": {
-    "url": "https://github.com/krzysztofradomski/multi-engine/issues"
+    "url": "https://github.com/krzysztofradomski/tanks2/issues"
   },
-  "homepage": "https://github.com/krzysztofradomski/multi-engine#readme"
+  "homepage": "https://github.com/krzysztofradomski/tanks2#readme"
 }
