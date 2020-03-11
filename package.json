@@ -12,6 +12,9 @@
     "multiplayer",
     "engine"
   ],
+  "engines": {
+    "node": "^12.4.0"
+  }
   "author": "Krzysztof Radomski",
   "license": "ISC",
   "dependencies": {
