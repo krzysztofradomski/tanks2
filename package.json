@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "build": "node index.js",
-    "start": "npm run build"
+    "start": "node index.js"
   },
   "keywords": [
     "multiplayer",
