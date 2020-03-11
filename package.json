@@ -15,6 +15,7 @@
   "author": "Krzysztof Radomski",
   "license": "ISC",
   "dependencies": {
+    "node": "^12.4.0",
     "@babel/polyfill": "^7.2.5",
     "express": "^4.16.4",
     "http": "0.0.0",
