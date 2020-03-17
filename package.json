@@ -13,25 +13,18 @@
   "author": "Krzysztof Radomski",
   "license": "ISC",
   "dependencies": {
-    "@babel/polyfill": "^7.2.5",
     "express": "^4.16.4",
     "http": "0.0.0",
-    "nodemon": "^1.18.9",
+    "nodemon": "^2.0.2",
     "socket.io": "^2.2.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.3.4",
-    "@babel/preset-env": "^7.3.4",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-preset-minify": "^0.5.0",
     "eslint": "^5.13.0",
     "eslint-config-standard": "^12.0.0",
     "eslint-plugin-import": "^2.16.0",
     "eslint-plugin-node": "^8.0.1",
     "eslint-plugin-promise": "^4.0.1",
-    "eslint-plugin-standard": "^4.0.0",
-    "rimraf": "^2.6.3"
+    "eslint-plugin-standard": "^4.0.0"
   },
   "repository": {
     "type": "git",
