@@ -37,7 +37,7 @@ class IOServer {
    * @param {object} socket
    */
   handleConnection(socket) {
-    console.log('Connected socket id: ', socket.id)
+    console.log('Connected socket: ', socket.id)
     // Keep track of all clients, for future use now.
     this.nativeAllConnectedClients.push(socket)
 
@@ -90,7 +90,10 @@ class IOServer {
       const firstRoomWithEmptySlotId = firstRoomWithEmptySlot
         ? firstRoomWithEmptySlot.id
         : null
-      console.log('firstRoomWithEmptySlotId', firstRoomWithEmptySlotId)
+      const message = firstRoomWithEmptySlotId
+        ? `Room ${firstRoomWithEmptySlotId} has spot, connecting.`
+        : `No room with empty spot, creating new one.`
+      console.log(message)
       const firstfreeIndex = firstRoomWithEmptySlotId
         ? getNumberFromRoomId(firstRoomWithEmptySlotId)
         : findLowestNumberNotInArray(
@@ -140,6 +143,7 @@ class IOServer {
      * @param {string} mode
      */
     const joinRoomById = (roomId, mode) => {
+      console.log(`Socket ${socket.id} is joining game: ${roomId}.`)
       if (
         mode === 'auto' ||
         (mode === 'private' && !this.nativeAllActiveRooms[roomId]) ||
@@ -171,7 +175,6 @@ class IOServer {
      */
     const autoJoin = () => {
       const firstFreeRoomId = getFirstFreeRoomId()
-      // console.log('firstfree', firstfree)
       joinRoomById(firstFreeRoomId, 'auto')
     }
 
@@ -194,7 +197,7 @@ class IOServer {
      *
      */
     const disconnect = () => {
-      // console.log('A client disconnected.')
+      console.log('Disconnected socket: ', socket.id)
       socket.leave(currentRoom)
       const i = this.nativeAllConnectedClients.indexOf(socket)
       this.nativeAllConnectedClients.splice(i, 1)
@@ -217,6 +220,7 @@ class IOServer {
      * @param {number} roomNumber
      */
     const leaveRoomById = roomId => {
+      console.log(`Socket ${socket.id} is leaving game: ${roomId}.`)
       if (!this.nativeAllActiveRooms[roomId]) {
         console.log('empty room')
         this.computedRoomsById = this.computedRoomsById.filter(
@@ -235,7 +239,8 @@ class IOServer {
         socket.emit('leftRoom', roomId)
         broadcastRoomsData()
       } else {
-        let message = 'Failed to leave room ' + roomId + '.'
+        let message = `Failed to leave room: ${roomId}.`
+        console.warn(message)
         socket.emit('nonBreakingError', message)
       }
     }

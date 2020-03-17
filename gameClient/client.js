@@ -8,6 +8,7 @@ const isPrivateRoomNameValid = str => getRoomType(str) === 'private'
 let socket = io();
 
 let roomsData = null
+let playersByIds = []
 let myId = null
 let myRoomNumber = null
 let myRoomId = null
@@ -201,7 +202,9 @@ function getMyGamePlayerLabel() {
  */
 function getMyGamePlayers() {
   return myGameData
-    ? myGameData.playersById.map((p, i) => (i === 0 ? (p = p + ' (you)') : p))
+    ? playersByIds
+      .map(player => (player === myId ? player + ' (you)' : player))
+      .join(', ')
     : null
 }
 
@@ -262,7 +265,8 @@ function clientSetup() {
     myRoomId = getMyRoomId()
     document.getElementById('room').textContent = myRoomNumber
     document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
-    console.log('Successfully connected to room: ', myRoomNumber)
+    console.log('Successfully connected to room number: ', myRoomNumber)
+    console.log('Successfully connected to room id: ', myRoomId)
     enableKeyboardControls()
   })
 
@@ -287,8 +291,10 @@ function clientSetup() {
     createRoomsDataInfoPanel(data)
     document.getElementById('room').textContent = getMyRoomId()
     const myRoom = data.rooms.filter(room => room.id === getMyRoomId())[0]
-    const playersByIds = myRoom ? Object.keys(myRoom.data.sockets) : []
+    playersByIds = myRoom ? Object.keys(myRoom.data.sockets) : []
     playersByIds.forEach(id => console.log('connected player id', id))
+    document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
+    document.getElementById('players').textContent = getMyGamePlayers()
   })
 
   socket.on('nonBreakingError', function (data) {
@@ -296,21 +302,19 @@ function clientSetup() {
   })
 
   socket.on('gameLoop', function (data) {
-    myGameData = data
-    // myGameDataStream.push(data)
-    if (
-      document.getElementById('playerLabel').textContent !==
-      getMyGamePlayerLabel()
-    ) {
-      document.getElementById(
-        'playerLabel'
-      ).textContent = getMyGamePlayerLabel()
+    if (!myGameData) {
+      myGameData = data
+      document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
+      document.getElementById('players').textContent = getMyGamePlayers()
+    } else {
+      myGameData = data
     }
+
+    // console.log('myGameData', myGameData)
+    // myGameDataStream.push(data)
+
     if (document.getElementById('time').textContent !== getMyGameTime()) {
       document.getElementById('time').textContent = getMyGameTime()
-    }
-    if (document.getElementById('players').textContent !== getMyGamePlayers()) {
-      document.getElementById('players').textContent = getMyGamePlayers()
     }
 
     if (!enemy) {
@@ -451,7 +455,7 @@ function keyboard(value) {
   key.unsubscribe = () => {
     window.removeEventListener('keydown', downListener)
     window.removeEventListener('keyup', upListener)
-  };
+  }
 
   return key
 }
@@ -474,10 +478,10 @@ function enableKeyboardControls() {
     }
     clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
-  };
+  }
   left.release = () => {
     clearInterval(keyInterval)
-  };
+  }
 
   right.press = () => {
     const data = {
@@ -487,10 +491,10 @@ function enableKeyboardControls() {
     }
     clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
-  };
+  }
   right.release = () => {
     clearInterval(keyInterval)
-  };
+  }
 
   down.press = () => {
     const data = {
@@ -500,10 +504,10 @@ function enableKeyboardControls() {
     }
     clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
-  };
+  }
   down.release = () => {
     clearInterval(keyInterval)
-  };
+  }
 
   up.press = () => {
     const data = {
@@ -513,10 +517,10 @@ function enableKeyboardControls() {
     }
     clearInterval(keyInterval)
     keyInterval = setInterval(() => socket.emit('playerMove', data), 1000 / 30)
-  };
+  }
   up.release = () => {
     clearInterval(keyInterval)
-  };
+  }
 }
 
 function disableKeyboardControls() {
