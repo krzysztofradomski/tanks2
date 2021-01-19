@@ -246,7 +246,7 @@ class IOServer {
     }
 
     const playerMove = data => {
-      console.log('data.roomId', data)
+      // console.log('data.roomId', data)
       if (this.computedActiveGamesMap[data.roomId]) {
         this.computedActiveGamesMap[data.roomId].movePlayer({
           id: socket.id,

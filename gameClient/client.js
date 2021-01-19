@@ -1,6 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* This is just a mockup UI */
-
 const getRoomType = roomId =>
   RegExp('room', 'ig').test(roomId) ? 'public' : 'private'
 const isPrivateRoomNameValid = str => getRoomType(str) === 'private'
@@ -367,7 +364,7 @@ function clientSetup() {
 
     if (data.players.length) {
       data.players.forEach(player => drawPlayer(player, round))
-      console.log('data', data)
+      // console.log('data', data)
 
       // playerAContainer = new PIXI.Container()
       // playerA = new PIXI.Graphics()

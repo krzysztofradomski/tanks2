@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "multiplayer tank game",
   "scripts": {
+    "minify": "terser gameClient/client.js  -o gameClient/client.min.js -c -m",
     "dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "npm run minify && node index.js"
   },
   "keywords": [
     "multiplayer",
@@ -13,10 +14,14 @@
   "author": "Krzysztof Radomski",
   "license": "ISC",
   "dependencies": {
+    "compression": "^1.7.4",
+    "dotenv": "^8.2.0",
     "express": "^4.16.4",
+    "helmet": "^4.4.1",
     "http": "0.0.0",
     "nodemon": "^2.0.2",
-    "socket.io": "^2.2.0"
+    "socket.io": "^2.2.0",
+    "terser": "^5.5.1"
   },
   "devDependencies": {
     "eslint": "^5.13.0",

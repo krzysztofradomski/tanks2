@@ -20,8 +20,8 @@ const Player = ({ id, label, lives = 5, size = 20, stageSize = 480 }) => {
     health: 100,
     alive: true,
     position: {
-      vector: 'x',
-      step: 1,
+      vector: 'y',
+      step: -1,
       x: label === 'A' ? 0 : stageSize - size,
       y: stageSize - size
     }
