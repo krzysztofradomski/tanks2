@@ -22,7 +22,7 @@ const moveEnemy = state => ({
   }
 })
 
-const Enemy = ({ id, size = 10, stageSize = 480 }) => {
+const Enemy = ({ id, size = 20, stageSize = 480 }) => {
   const state = {
     id,
     size,

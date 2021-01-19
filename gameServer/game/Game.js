@@ -10,7 +10,7 @@ class Game {
     this.interval = null
     // game and physics run at 30 fps, just like our japanese masters envisioned
     this.framerate = 1000 / 30
-    this.enemySize = 10
+    this.enemySize = 20
     this.stageSize = 480
     this.playersById = []
     this.enemies = []
@@ -19,6 +19,7 @@ class Game {
 
   start() {
     if (this.running === false) {
+      console.log(`Game '${this.id}' started.`)
       this.addEnemy()
       this.running = true
       this.scheduleNextTick()
@@ -30,6 +31,9 @@ class Game {
   }
 
   tick() {
+    if (!this.playersById.length) {
+      this.stop()
+    }
     this.gameLoop()
     const gameData = {
       time: this.time,
@@ -48,8 +52,12 @@ class Game {
   }
 
   stop() {
+    console.log(`Game '${this.id}' stoppped.`)
     if (this.running === true) {
       this.running = false
+      this.playersById = []
+      this.enemies = []
+      this.players = []
       clearInterval(this.interval)
     }
   }
