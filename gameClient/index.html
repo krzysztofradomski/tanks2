@@ -17,11 +17,10 @@
     />
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js" defer></script>
-    <script src="pixi.min.js"></script>
-    <img src="assets/sprites.png">
+    <img src="assets/sprites.png" style="display: none;">
   </head>
   <body>
-    <stats class="stats" id="stats">
+    <div class="stats" id="stats">
       <div class="stats stats_header">
         <p>Active rooms:  <span id="rooms"></span></p>
        
@@ -37,28 +36,28 @@
         </p>
       </div>
       <div class="stats stats_players">
-        <playerA class="playerA">
+        <div class="playerA">
           <p>PlayerA Score: <span class="scoreValue"></span></p>
           <p>PlayerA Lives: <span class="livesValue"></span></p>
-        </playerA>
-        <playerB class=" playerB">
+        </div>
+        <div class=" playerB">
           <p>PlayerB Score: <span class="scoreValue"></span></p>
           <p>PlayerB Lives: <span class="livesValue"></span></p>
-        </playerB>
+        </div>
       </div>
-    </stats>
+    </div>
     <canvas id="c" width="480" height="480"></canvas>
-    <controls class="controls" id="controls">
+    <div class="controls" id="controls">
       Move: arrows (⇦ ⇨ ⇧ ⇩), shoot: 'Q'.
-    </controls>
-    <gameove class="gameover">
+    </div>
+    <div class="gameover">
       <h2>GAME OVER</h2>
-    </gameover>
-    <topscores class="topscores">
+    </div>
+    <div class="topscores">
       <p>1st place:</p>
       <p>2nd place:</p>
       <p>3rd place:</p>
-    </topscores>
+    </div>
     <form class="private" id="private">
       Join private room by id (room name):<br />
       <input type="text" name="room" class="control" placeholder="Type room name here" />

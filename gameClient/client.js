@@ -33,7 +33,6 @@ let down = null
 let left = null
 let right = null
 let sprites = new Image()
-// let sprites = new PIXI.Sprite('sprites.png')
 sprites.src = 'assets/sprites.png'
 const enemyTanksPositions = {
   x: 240,
@@ -293,11 +292,8 @@ function clientSetup() {
     document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
     document.getElementById('players').textContent = getMyGamePlayers()
     console.log('getMyRoomId()', getMyRoomId())
-    // app.stage.removeChild(enemyContainer)
     enemy = null
-    // app.stage.removeChild(playerAContainer)
     playerA = null
-    // app.stage.removeChild(playerBContainer)
     playerB = null
     disableKeyboardControls()
   })
@@ -313,14 +309,13 @@ function clientSetup() {
   })
 
   socket.on('leftRoom', function (data) {
+    context.clearRect(0, 0, canvas.width, canvas.height)
     myGameData = null
     console.log('Successfully left room: ', data)
     console.log('myGameDataStream', myGameDataStream)
-    // app.stage.removeChild(enemyContainer)
+
     enemy = null
-    // app.stage.removeChild(playerAContainer)
     playerA = null
-    // app.stage.removeChild(playerBContainer)
     playerB = null
     disableKeyboardControls()
     myRoomId = getMyRoomId()
@@ -463,18 +458,6 @@ function clientSetup() {
   document.getElementById('private').addEventListener('submit', joinPrivateGame)
 }
 
-// function setupPixi() {
-//   let type = 'WebGL'
-//   if (!PIXI.utils.isWebGLSupported()) {
-//     type = 'canvas'
-//   }
-
-//   PIXI.utils.sayHello(type)
-//   app = new PIXI.Application({ width: 480, height: 480 })
-
-//   document.querySelector('canva').appendChild(app.view)
-// }
-
 function keyboard(value) {
   let key = {}
   key.value = value
@@ -590,4 +573,3 @@ function disableKeyboardControls() {
 }
 
 clientSetup()
-// setupPixi()
