@@ -18,6 +18,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="client.js" defer></script>
     <script src="pixi.min.js"></script>
+    <img src="assets/sprites.png">
   </head>
   <body>
     <stats class="stats" id="stats">
@@ -46,7 +47,7 @@
         </playerB>
       </div>
     </stats>
-    <canva></canva>
+    <canvas id="c" width="480" height="480"></canvas>
     <controls class="controls" id="controls">
       Move: arrows (⇦ ⇨ ⇧ ⇩), shoot: 'Q'.
     </controls>
@@ -60,9 +61,9 @@
     </topscores>
     <form class="private" id="private">
       Join private room by id (room name):<br />
-      <input type="text" name="room" placeholder="Type room name here" />
+      <input type="text" name="room" class="control" placeholder="Type room name here" />
       <br /><br />
-      <input type="submit" name="joinPrivate" value="Join game" />
+      <input type="submit" name="joinPrivate" class="control" value="Join game" />
     </form>
   </body>
 </html>

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* This is just a mockup UI */
 
 const getRoomType = roomId =>
@@ -5,8 +6,13 @@ const getRoomType = roomId =>
 const isPrivateRoomNameValid = str => getRoomType(str) === 'private'
 
 // eslint-disable-next-line
-let socket = io();
+let socket = io()
 
+const canvas = document.getElementById('c')
+const context = canvas.getContext('2d')
+window.ctx = context
+
+let round = 1
 let roomsData = null
 let playersByIds = []
 let myId = null
@@ -27,7 +33,8 @@ let down = null
 let left = null
 let right = null
 let sprites = new Image()
-sprites.src = 'sprites.png'
+// let sprites = new PIXI.Sprite('sprites.png')
+sprites.src = 'assets/sprites.png'
 const enemyTanksPositions = {
   x: 240,
   '-x': 161,
@@ -57,6 +64,40 @@ const enemyExplosionPosition = {
 let gameNumber = null
 let scoresData = null
 
+function drawEnemy(enemy, round) {
+  let r = 20 || enemy.size
+  let x = enemy.position.x
+  let y = enemy.position.y
+  let pos = (enemy.position.step > 0 ? '' : '-') + enemy.position.vector
+  let version = round < 9 ? enemyTanksPositions[String(round)] : enemyTanksPositions[String((Math.random(1) * 8).toFixed(0))]
+  context.drawImage(sprites, enemyTanksPositions[pos], version, 15, 15, x, y, r, r)
+  // console.log(sprites)
+  // console.log(enemyTanksPositions[pos])
+  // console.log(x, y)
+  console.log('pos', pos)
+  // context.drawI, mage(sprites, 271, 127, 17, 17, enemyExplosionPosition.x, enemyExplosionPosition.y, 25, 25)
+  // context.lineWidth = '6'
+  // context.beginPath()
+  // context.strokeStyle = 'red'
+  // context.rect(x, y, 15, 15)
+  // context.stroke()
+};
+// const drawPlayer = (player) => {
+//   let lives = gamestate[player].lives
+//   let score = gamestate[player].score
+//   document.querySelector('stats ' + player + ' .scoreValue').textContent = score
+//   document.querySelector('stats ' + player + ' .livesValue').textContent = lives
+//   let playerSize = gamestate[player].drawsize
+//   let playerX = gamestate[player].position.x
+//   let playerY = gamestate[player].position.y
+//   let pos = gamestate[player].axis
+//   context.drawImage(sprites, playerPositions[pos], playerPositions[player], 15, 15, playerX, playerY, playerSize, playerSize)
+//   enemyExplosionPosition = {
+//     'x': -50,
+//     'y': -50
+//   }
+// }
+
 /**
  * Create buttons to auto join and leave rooms.
  *
@@ -78,8 +119,7 @@ function createControls() {
     button.innerText = controls[i].label
     container.appendChild(button)
   }
-  document.getElementsByName('joinPrivate')[0].disabled =
-    getMyRoomId() !== null
+  document.getElementsByName('joinPrivate')[0].disabled = getMyRoomId() !== null
 }
 
 /**
@@ -191,7 +231,9 @@ function getMyGameTime() {
 
 function getMyGamePlayerLabel() {
   return myGameData
-    ? myGameData.players.filter(player => player.id === myId)[0].label
+    ? myGameData.players.filter(player => player.id === myId) &&
+    myGameData.players.filter(player => player.id === myId)[0] &&
+        myGameData.players.filter(player => player.id === myId)[0].label
     : null
 }
 
@@ -251,11 +293,11 @@ function clientSetup() {
     document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
     document.getElementById('players').textContent = getMyGamePlayers()
     console.log('getMyRoomId()', getMyRoomId())
-    app.stage.removeChild(enemyContainer)
+    // app.stage.removeChild(enemyContainer)
     enemy = null
-    app.stage.removeChild(playerAContainer)
+    // app.stage.removeChild(playerAContainer)
     playerA = null
-    app.stage.removeChild(playerBContainer)
+    // app.stage.removeChild(playerBContainer)
     playerB = null
     disableKeyboardControls()
   })
@@ -274,11 +316,11 @@ function clientSetup() {
     myGameData = null
     console.log('Successfully left room: ', data)
     console.log('myGameDataStream', myGameDataStream)
-    app.stage.removeChild(enemyContainer)
+    // app.stage.removeChild(enemyContainer)
     enemy = null
-    app.stage.removeChild(playerAContainer)
+    // app.stage.removeChild(playerAContainer)
     playerA = null
-    app.stage.removeChild(playerBContainer)
+    // app.stage.removeChild(playerBContainer)
     playerB = null
     disableKeyboardControls()
     myRoomId = getMyRoomId()
@@ -309,6 +351,7 @@ function clientSetup() {
     } else {
       myGameData = data
     }
+    context.clearRect(0, 0, canvas.width, canvas.height)
 
     // console.log('myGameData', myGameData)
     // myGameDataStream.push(data)
@@ -317,105 +360,120 @@ function clientSetup() {
       document.getElementById('time').textContent = getMyGameTime()
     }
 
-    if (!enemy) {
-      enemyContainer = new PIXI.Container()
-      enemy = new PIXI.Graphics()
-      enemy.beginFill(0xde3249)
-      enemy.drawRect(0, 0, 10, 10)
-      enemy.endFill()
-      enemyContainer.addChild(enemy)
-      const tagStyle = new PIXI.TextStyle({
-        stroke: 0xde3249,
-        fill: 0xde3249
-      })
-      const tag = new PIXI.Text('Enemy', tagStyle)
-      tag.position.set(10, -30)
-      enemyContainer.addChild(tag)
-      app.stage.addChild(enemyContainer)
-    }
-    if (enemy) {
-      enemyContainer.x = data.enemies[0].position.x
-      enemyContainer.y = data.enemies[0].position.y
+    // if (!enemy) {
+    //   enemy = data.enemies[0]
+    //   console.log('enemy', enemy)
+    //   // enemyContainer = new PIXI.Container()
+    //   // enemyContainer.mask = new PIXI.Graphics()
+    //   // enemy = new PIXI.Graphics()
+    //   // enemy.beginFill(0xde3249)
+    //   // enemy.drawRect(0, 0, 10, 10)
+    //   // enemy.endFill()
+    //   // enemyContainer.addChild(enemy)
+    //   // const tagStyle = new PIXI.TextStyle({
+    //   //   stroke: 0xde3249,
+    //   //   fill: 0xde3249
+    //   // })
+    //   // const tag = new PIXI.Text('Enemy', tagStyle)
+    //   // tag.position.set(10, -30)
+    //   // enemyContainer.addChild(tag)
+    //   // app.stage.addChild(enemyContainer)
+    // }
+    if (data.enemies[0]) {
+      enemy = data.enemies[0]
+      drawEnemy(enemy, round)
+      // console.log('enemy draw', data.enemies[0])
+      // let round = 1
+      // let r = data.enemies[0].drawsize
+      // let x = data.enemies[0].position.x
+      // let y = data.enemies[0].position.y
+      // let pos = (data.enemies[0].moveto.vector > 0 ? '' : '-') + data.enemies[0].moveto.axis
+      // let version = round < 9 ? enemyTanksPositions[String(round)] : enemyTanksPositions[String((Math.random(1) * 8).toFixed(0))]
+      // context.drawImage(sprites, enemyTanksPositions[pos], version, 15, 15, x, y, r, r)
+      // enemyContainer.x = x
+      // enemyContainer.y = y
+      // enemyContainer.mask
+      //   .beginFill(0xffffff)
+      //   .drawCircle(sprite.width / 2, sprite.height / 2, Math.min(sprite.width, sprite.height) / 2)
+      //   .endFill()
     }
 
     if (!playerA && data.players.some(player => player.label === 'A')) {
-      playerAContainer = new PIXI.Container()
-      playerA = new PIXI.Graphics()
-      playerA.beginFill(0x3500fa, 1)
-      playerA.drawRect(0, 0, 10, 10)
-      playerA.endFill()
-      playerAContainer.addChild(playerA)
-      const tagStyle = new PIXI.TextStyle({
-        stroke: 0x3500fa,
-        fill: 0x3500fa
-      })
-      const tag = new PIXI.Text('Player A', tagStyle)
-      tag.position.set(10, -30)
-      playerAContainer.addChild(tag)
-      app.stage.addChild(playerAContainer)
+      // playerAContainer = new PIXI.Container()
+      // playerA = new PIXI.Graphics()
+      // playerA.beginFill(0x3500fa, 1)
+      // playerA.drawRect(0, 0, 10, 10)
+      // playerA.endFill()
+      // playerAContainer.addChild(playerA)
+      // const tagStyle = new PIXI.TextStyle({
+      //   stroke: 0x3500fa,
+      //   fill: 0x3500fa
+      // })
+      // const tag = new PIXI.Text('Player A', tagStyle)
+      // tag.position.set(10, -30)
+      // playerAContainer.addChild(tag)
+      // app.stage.addChild(playerAContainer)
     }
-    if (!data.players.some(player => player.label === 'A')) {
-      app.stage.removeChild(playerAContainer)
-      playerA = null
-    }
-    if (playerA) {
-      const x = data.players.filter(player => player.label === 'A')[0].position
-        .x
-      // console.log('playerA x', x)
-      playerAContainer.x = x
-      const y = data.players.filter(player => player.label === 'A')[0].position
-        .y
-      // console.log('playerA y', y)
-      playerAContainer.y = y
-    }
-    if (!playerB && data.players.some(player => player.label === 'B')) {
-      playerBContainer = new PIXI.Container()
-      playerB = new PIXI.Graphics()
-      playerB.beginFill(0x35cc5a, 1)
-      playerB.drawRect(0, 0, 10, 10)
-      playerB.endFill()
-      playerBContainer.addChild(playerB)
-      const tagStyle = new PIXI.TextStyle({
-        stroke: 0x35cc5a,
-        fill: 0x35cc5a
-      })
-      const tag = new PIXI.Text('Player B', tagStyle)
-      tag.position.set(10, -30)
-      playerBContainer.addChild(tag)
-      app.stage.addChild(playerBContainer)
-    }
-    if (!data.players.some(player => player.label === 'B')) {
-      app.stage.removeChild(playerBContainer)
-      playerB = null
-    }
-    if (playerB) {
-      const x = data.players.filter(player => player.label === 'B')[0].position
-        .x
-      // console.log('playerB x', x)
-      playerBContainer.x = x
-      const y = data.players.filter(player => player.label === 'B')[0].position
-        .y
-      // console.log('playerA B', y)
-      playerBContainer.y = y
-    }
+    // if (!data.players.some(player => player.label === 'A')) {
+    //   app.stage.removeChild(playerAContainer)
+    //   playerA = null
+    // }
+    // if (playerA) {
+    //   const x = data.players.filter(player => player.label === 'A')[0].position
+    //     .x
+    //   // console.log('playerA x', x)
+    //   playerAContainer.x = x
+    //   const y = data.players.filter(player => player.label === 'A')[0].position
+    //     .y
+    //   // console.log('playerA y', y)
+    //   playerAContainer.y = y
+    // }
+    // if (!playerB && data.players.some(player => player.label === 'B')) {
+    //   playerBContainer = new PIXI.Container()
+    //   playerB = new PIXI.Graphics()
+    //   playerB.beginFill(0x35cc5a, 1)
+    //   playerB.drawRect(0, 0, 10, 10)
+    //   playerB.endFill()
+    //   playerBContainer.addChild(playerB)
+    //   const tagStyle = new PIXI.TextStyle({
+    //     stroke: 0x35cc5a,
+    //     fill: 0x35cc5a
+    //   })
+    //   const tag = new PIXI.Text('Player B', tagStyle)
+    //   tag.position.set(10, -30)
+    //   playerBContainer.addChild(tag)
+    //   app.stage.addChild(playerBContainer)
+    // }
+    // if (!data.players.some(player => player.label === 'B')) {
+    //   app.stage.removeChild(playerBContainer)
+    //   playerB = null
+    // }
+    // if (playerB) {
+    //   const x = data.players.filter(player => player.label === 'B')[0].position
+    //     .x
+    //   // console.log('playerB x', x)
+    //   playerBContainer.x = x
+    //   const y = data.players.filter(player => player.label === 'B')[0].position
+    //     .y
+    //   // console.log('playerA B', y)
+    //   playerBContainer.y = y
+    // }
   })
 
-  document
-    .getElementById('private')
-    .addEventListener('submit', joinPrivateGame)
+  document.getElementById('private').addEventListener('submit', joinPrivateGame)
 }
 
-function setupPixi() {
-  let type = 'WebGL'
-  if (!PIXI.utils.isWebGLSupported()) {
-    type = 'canvas'
-  }
+// function setupPixi() {
+//   let type = 'WebGL'
+//   if (!PIXI.utils.isWebGLSupported()) {
+//     type = 'canvas'
+//   }
 
-  PIXI.utils.sayHello(type)
-  app = new PIXI.Application({ width: 480, height: 480 })
+//   PIXI.utils.sayHello(type)
+//   app = new PIXI.Application({ width: 480, height: 480 })
 
-  document.querySelector('canva').appendChild(app.view)
-}
+//   document.querySelector('canva').appendChild(app.view)
+// }
 
 function keyboard(value) {
   let key = {}
@@ -532,4 +590,4 @@ function disableKeyboardControls() {
 }
 
 clientSetup()
-setupPixi()
+// setupPixi()
