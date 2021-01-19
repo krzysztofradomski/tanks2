@@ -53,8 +53,8 @@ const playerPositions = {
   '-x': 50,
   y: 65,
   '-y': 0,
-  playerA: 0,
-  playerB: 129
+  'A': 0,
+  'B': 129
 }
 const enemyExplosionPosition = {
   x: -50,
@@ -64,38 +64,30 @@ let gameNumber = null
 let scoresData = null
 
 function drawEnemy(enemy, round) {
-  let r = 20 || enemy.size
+  let r = enemy.size
   let x = enemy.position.x
   let y = enemy.position.y
-  let pos = (enemy.position.step > 0 ? '' : '-') + enemy.position.vector
+  let vector = (enemy.position.step > 0 ? '' : '-') + enemy.position.vector
   let version = round < 9 ? enemyTanksPositions[String(round)] : enemyTanksPositions[String((Math.random(1) * 8).toFixed(0))]
-  context.drawImage(sprites, enemyTanksPositions[pos], version, 15, 15, x, y, r, r)
-  // console.log(sprites)
-  // console.log(enemyTanksPositions[pos])
-  // console.log(x, y)
-  console.log('pos', pos)
-  // context.drawI, mage(sprites, 271, 127, 17, 17, enemyExplosionPosition.x, enemyExplosionPosition.y, 25, 25)
-  // context.lineWidth = '6'
-  // context.beginPath()
-  // context.strokeStyle = 'red'
-  // context.rect(x, y, 15, 15)
-  // context.stroke()
+  context.drawImage(sprites, enemyTanksPositions[vector], version, 15, 15, x, y, r, r)
+  // context.drawImage(sprites, 271, 127, 17, 17, enemyExplosionPosition.x, enemyExplosionPosition.y, 25, 25)
 };
-// const drawPlayer = (player) => {
-//   let lives = gamestate[player].lives
-//   let score = gamestate[player].score
-//   document.querySelector('stats ' + player + ' .scoreValue').textContent = score
-//   document.querySelector('stats ' + player + ' .livesValue').textContent = lives
-//   let playerSize = gamestate[player].drawsize
-//   let playerX = gamestate[player].position.x
-//   let playerY = gamestate[player].position.y
-//   let pos = gamestate[player].axis
-//   context.drawImage(sprites, playerPositions[pos], playerPositions[player], 15, 15, playerX, playerY, playerSize, playerSize)
-//   enemyExplosionPosition = {
-//     'x': -50,
-//     'y': -50
-//   }
-// }
+function drawPlayer(player) {
+  // let lives = player.lives
+  // let score = player.score
+  // document.querySelector('stats ' + player + ' .scoreValue').textContent = score
+  // document.querySelector('stats ' + player + ' .livesValue').textContent = lives
+  let playerSize = player.size
+  let x = player.position.x
+  let y = player.position.y
+  let vector = (player.position.step > 0 ? '' : '-') + player.position.vector
+  let label = player.label
+  context.drawImage(sprites, playerPositions[vector], playerPositions[label], 15, 15, x, y, playerSize, playerSize)
+  // enemyExplosionPosition = {
+  //   'x': -50,
+  //   'y': -50
+  // }
+}
 
 /**
  * Create buttons to auto join and leave rooms.
@@ -355,28 +347,8 @@ function clientSetup() {
       document.getElementById('time').textContent = getMyGameTime()
     }
 
-    // if (!enemy) {
-    //   enemy = data.enemies[0]
-    //   console.log('enemy', enemy)
-    //   // enemyContainer = new PIXI.Container()
-    //   // enemyContainer.mask = new PIXI.Graphics()
-    //   // enemy = new PIXI.Graphics()
-    //   // enemy.beginFill(0xde3249)
-    //   // enemy.drawRect(0, 0, 10, 10)
-    //   // enemy.endFill()
-    //   // enemyContainer.addChild(enemy)
-    //   // const tagStyle = new PIXI.TextStyle({
-    //   //   stroke: 0xde3249,
-    //   //   fill: 0xde3249
-    //   // })
-    //   // const tag = new PIXI.Text('Enemy', tagStyle)
-    //   // tag.position.set(10, -30)
-    //   // enemyContainer.addChild(tag)
-    //   // app.stage.addChild(enemyContainer)
-    // }
-    if (data.enemies[0]) {
-      enemy = data.enemies[0]
-      drawEnemy(enemy, round)
+    if (data.enemies.length) {
+      data.enemies.forEach(enemy => drawEnemy(enemy, round))
       // console.log('enemy draw', data.enemies[0])
       // let round = 1
       // let r = data.enemies[0].drawsize
@@ -393,7 +365,10 @@ function clientSetup() {
       //   .endFill()
     }
 
-    if (!playerA && data.players.some(player => player.label === 'A')) {
+    if (data.players.length) {
+      data.players.forEach(player => drawPlayer(player, round))
+      console.log('data', data)
+
       // playerAContainer = new PIXI.Container()
       // playerA = new PIXI.Graphics()
       // playerA.beginFill(0x3500fa, 1)
@@ -413,16 +388,9 @@ function clientSetup() {
     //   app.stage.removeChild(playerAContainer)
     //   playerA = null
     // }
-    // if (playerA) {
-    //   const x = data.players.filter(player => player.label === 'A')[0].position
-    //     .x
-    //   // console.log('playerA x', x)
-    //   playerAContainer.x = x
-    //   const y = data.players.filter(player => player.label === 'A')[0].position
-    //     .y
-    //   // console.log('playerA y', y)
-    //   playerAContainer.y = y
-    // }
+    if (playerA) {
+      drawEnemy(playerA)
+    }
     // if (!playerB && data.players.some(player => player.label === 'B')) {
     //   playerBContainer = new PIXI.Container()
     //   playerB = new PIXI.Graphics()
