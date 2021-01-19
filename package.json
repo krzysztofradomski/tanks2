@@ -1,5 +1,5 @@
 {
-  "name": "multi-engine",
+  "name": "battle-city-2021",
   "version": "1.0.0",
   "description": "multiplayer tank game",
   "scripts": {
@@ -8,8 +8,9 @@
     "start": "npm run minify && node index.js"
   },
   "keywords": [
-    "multiplayer",
-    "engine"
+    "battle",
+    "city",
+    "tanks"
   ],
   "author": "Krzysztof Radomski",
   "license": "ISC",
