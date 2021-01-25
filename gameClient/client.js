@@ -18,11 +18,8 @@ let myRoomId = null
 let myGameData = null
 let myGameDataStream = []
 let enemy = null
-let enemyContainer = null
 let playerA = null
-let playerAContainer = null
 let playerB = null
-let playerBContainer = null
 let app = null
 let keyInterval = null
 let up = null
@@ -53,12 +50,21 @@ const playerPositions = {
   'A': 0,
   'B': 129
 }
-const enemyExplosionPosition = {
-  x: -50,
-  y: -50
-}
-let gameNumber = null
-let scoresData = null
+// const enemyExplosionPosition = {
+//   x: -50,
+//   y: -50
+// }
+// let gameNumber = null
+// let scoresData = null
+
+function drawMissile(actor) {
+  let mr = actor.missile.size / actor.size
+  let mx = actor.missile.position.x
+  let my = actor.missile.position.y
+  context.beginPath()
+  context.fillStyle = actor.missile.color
+  context.fillRect(mx, my, mr, mr)
+};
 
 function drawEnemy(enemy, round) {
   let r = enemy.size
@@ -68,6 +74,9 @@ function drawEnemy(enemy, round) {
   let version = round < 9 ? enemyTanksPositions[String(round)] : enemyTanksPositions[String((Math.random(1) * 8).toFixed(0))]
   context.drawImage(sprites, enemyTanksPositions[vector], version, 15, 15, x, y, r, r)
   // context.drawImage(sprites, 271, 127, 17, 17, enemyExplosionPosition.x, enemyExplosionPosition.y, 25, 25)
+  if (enemy.missile) {
+    drawMissile(enemy)
+  }
 };
 function drawPlayer(player) {
   // let lives = player.lives
@@ -84,6 +93,9 @@ function drawPlayer(player) {
   //   'x': -50,
   //   'y': -50
   // }
+  if (player.missile) {
+    drawMissile(enemy)
+  }
 }
 
 /**

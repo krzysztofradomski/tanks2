@@ -1,18 +1,18 @@
-var fs = require('fs')
-const IOServer = require('../gameServer/network')
+const fs = require('fs')
+const express = require('express')
+const helmet = require('helmet')
+const compression = require('compression')
+const SocketServer = require('../gameServer/network')
 class Server {
   constructor() {
-    this.express = require('express')
-    this.app = this.express()
-    this.helmet = require('helmet')
-    this.compression = require('compression')
+    this.app = express()
     this.http = require('http').Server(this.app)
     this.io = require('socket.io')(this.http)
-    this.ioServer = new IOServer(this.io)
+    this.socketServer = new SocketServer(this.io)
   }
 
   initialiseSocketCommunication() {
-    this.ioServer.start()
+    this.socketServer.start()
   }
 
   listen() {
@@ -22,10 +22,10 @@ class Server {
   }
 
   setup() {
-    this.app.use(this.helmet({
+    this.app.use(helmet({
       contentSecurityPolicy: false
     }))
-    this.app.use(this.compression())
+    this.app.use(compression())
   }
 
   serveStaticFiles() {
@@ -37,7 +37,7 @@ class Server {
         if (err) console.log('ERROR: ' + err)
       })
     }
-    this.app.use(this.express.static('gameClient'))
+    this.app.use(express.static('gameClient'))
   }
 
   start() {

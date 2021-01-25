@@ -1,3 +1,5 @@
+const { calculateBallistics } = require('./shooting')
+
 const recalculatePosition = pos => {
   const shouldChangeDirection = Math.random() > 0.95
   if (shouldChangeDirection) {
@@ -19,6 +21,11 @@ const moveEnemy = state => ({
       state.position = recalculatePosition(state.position)
     }
     return state
+  },
+  shoot: () => {
+    if (state.alive) {
+      state.missile = calculateBallistics(state)
+    }
   }
 })
 
