@@ -47,7 +47,11 @@ class Game {
 
   gameLoop() {
     this.time = this.time + 1000 / 30 / 1000
-    this.enemies.forEach(enemy => enemy.move())
+    this.enemies.forEach(enemy => {
+      enemy.move()
+      enemy.trackMissile()
+      Math.random() < 0.1 && enemy.shoot()
+    })
     this.collisionsCheck()
   }
 

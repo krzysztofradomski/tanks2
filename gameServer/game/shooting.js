@@ -1,41 +1,31 @@
-const calculateBallistics = state => {
-  const { missile } = state
-  return missile
+const createMissile = state => {
+  if (!state.missile) {
+    const missile = {
+      size: 4,
+      position: {
+        x: Math.round(state.position.x + state.size / 2),
+        y: Math.round(state.position.y + state.size / 2),
+        vector: state.position.vector,
+        step: 5 * state.position.step
+      }
+    }
+    return missile
+  } else {
+    return state.missile
+  }
+}
+const trackMissile = state => {
+  if (state.missile) {
+    state.missile.position[state.missile.position.vector] += state.missile.position.step
+    if (state.missile.position.x > state.stageSize ||
+      state.missile.position.y > state.stageSize ||
+      state.missile.position.x < 0 ||
+      state.missile.position.y < 0) {
+      state.missile = null
+    }
+    // obstaclesHitDetection();
+  }
+  return state.missile
 }
 
-// loading() {
-//   if (!this.missile) {
-//     let position = this.position;
-//     let axis = this.axis;
-//     this.missile = {
-//       size: 10,
-//       position: {
-//         x: position.x + this.drawsize / 2,
-//         y: position.y + this.drawsize / 2
-//       },
-//       vector: -25,
-//       axis: 'y'
-//     };
-//     switch (axis) {
-//     case '-x':
-//       this.missile.vector = -25;
-//       this.missile.axis = 'x';
-//       break;
-//     case 'x':
-//       this.missile.vector = 25;
-//       this.missile.axis = 'x';
-//       break;
-//     case '-y':
-//       this.missile.vector = -25;
-//       this.missile.axis = 'y';
-//       break;
-//     case 'y':
-//       this.missile.vector = 25;
-//       this.axis = 'y';
-//       break;
-
-//     }
-//   }
-// }
-
-module.exports = { calculateBallistics }
+module.exports = { createMissile, trackMissile }

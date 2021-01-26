@@ -58,11 +58,11 @@ const playerPositions = {
 // let scoresData = null
 
 function drawMissile(actor) {
-  let mr = actor.missile.size / actor.size
+  let mr = actor.missile.size
   let mx = actor.missile.position.x
   let my = actor.missile.position.y
   context.beginPath()
-  context.fillStyle = actor.missile.color
+  context.fillStyle = actor.color || 'orange'
   context.fillRect(mx, my, mr, mr)
 };
 
@@ -75,6 +75,7 @@ function drawEnemy(enemy, round) {
   context.drawImage(sprites, enemyTanksPositions[vector], version, 15, 15, x, y, r, r)
   // context.drawImage(sprites, 271, 127, 17, 17, enemyExplosionPosition.x, enemyExplosionPosition.y, 25, 25)
   if (enemy.missile) {
+    console.log(enemy.missile)
     drawMissile(enemy)
   }
 };
@@ -94,7 +95,7 @@ function drawPlayer(player) {
   //   'y': -50
   // }
   if (player.missile) {
-    drawMissile(enemy)
+    drawMissile(player)
   }
 }
 
