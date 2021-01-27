@@ -434,6 +434,11 @@ let socket = io()
     // }
     })
 
+    socket.on('playerKill', function (data) {
+      let id = getMyRoomId()
+      socket.emit('leaveRoomById', id)
+    })
+
     document.getElementById('private').addEventListener('submit', joinPrivateGame)
   }
 

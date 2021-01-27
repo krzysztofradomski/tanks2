@@ -27,12 +27,16 @@ class Game {
   }
 
   scheduleNextTick() {
+    console.log('scheduleNextTick')
+    clearTimeout(this.interval)
     this.interval = setTimeout(() => this.tick(), this.framerate)
   }
 
   tick() {
-    if (!this.playersById.length) {
+    console.log('tick')
+    if (!this.playersById.length && this.gameover) {
       this.stop()
+      return
     }
     this.gameLoop()
     const gameData = {
@@ -46,26 +50,28 @@ class Game {
   }
 
   gameLoop() {
-    this.time = this.time + 1000 / 30 / 1000
-    this.enemies.forEach(enemy => {
-      enemy.move()
-      enemy.trackMissile()
-      Math.random() < 0.1 && enemy.shoot()
-    })
-    this.players.forEach(player => {
-      player.trackMissile()
-    })
-    this.collisionsCheck()
+    if (this.running) {
+      this.time = this.time + 1000 / 30 / 1000
+      this.enemies.forEach(enemy => {
+        enemy.move()
+        enemy.trackMissile()
+        Math.random() < 0.1 && enemy.shoot()
+      })
+      this.players.forEach(player => {
+        player.trackMissile()
+      })
+      this.collisionsCheck()
+    }
   }
 
   stop() {
-    console.log(`Game '${this.id}' stoppped.`)
-    if (this.running === true) {
+    if (this.running) {
+      console.log(`Game '${this.id}' stopped.`)
       this.running = false
       this.playersById = []
       this.enemies = []
       this.players = []
-      clearInterval(this.interval)
+      clearTimeout(this.interval)
     }
   }
 
@@ -78,8 +84,27 @@ class Game {
   }
 
   leavePlayer(id) {
+    console.log('leavePlayer')
     this.playersById = this.playersById.filter(playerId => playerId !== id)
     this.players = this.players.filter(player => player.id !== id)
+    if (!this.playersById.length && this.running) {
+      this.stop()
+    }
+    // if (this.io.sockets.sockets[id]) {
+    //   this.io.sockets.sockets[id].disconnect()
+    // }
+  }
+
+  killPlayer(id) {
+    console.log('killPlayer')
+    this.playersById = this.playersById.filter(playerId => playerId !== id)
+    this.players = this.players.filter(player => player.id !== id)
+    if (!this.playersById.length) {
+      setTimeout(() => {
+        this.io.to(this.id).emit('playerKill', id)
+        this.gameover = true
+      }, 3000)
+    }
   }
 
   movePlayer(data) {
@@ -119,6 +144,14 @@ class Game {
       }
       if (enemy.position.y <= enemy.size) {
         enemy.position.y = enemy.size
+      }
+      if (enemy.missile && this.players.length) {
+        this.players.forEach(player => {
+          if (Math.abs(enemy.missile.position.x - player.position.x) < player.size ||
+          Math.abs(enemy.missile.position.y - player.position.y) < player.size) {
+            this.killPlayer(player.id)
+          }
+        })
       }
     })
   }
