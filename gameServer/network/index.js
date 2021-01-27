@@ -245,10 +245,20 @@ class IOServer {
       }
     }
 
-    const playerMove = data => {
+    const movePlayer = data => {
       // console.log('data.roomId', data)
       if (this.computedActiveGamesMap[data.roomId]) {
         this.computedActiveGamesMap[data.roomId].movePlayer({
+          id: socket.id,
+          ...data
+        })
+      }
+    }
+
+    const shootPlayer = data => {
+      // console.log('data.roomId', data)
+      if (this.computedActiveGamesMap[data.roomId]) {
+        this.computedActiveGamesMap[data.roomId].shootPlayer({
           id: socket.id,
           ...data
         })
@@ -271,7 +281,10 @@ class IOServer {
     socket.on('disconnect', disconnect)
 
     // Handle player move.
-    socket.on('playerMove', data => playerMove(data))
+    socket.on('movePlayer', data => movePlayer(data))
+
+    // Handle player shoot
+    socket.on('shootPlayer', data => shootPlayer(data))
 
     // BroadcastRoomsData stats to everyone connected.
     broadcastRoomsData()

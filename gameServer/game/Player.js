@@ -1,3 +1,5 @@
+const { createMissile, trackMissile } = require('./shooting')
+
 const movePlayer = state => ({
   move: ({ vector, step }) => {
     state.position = {
@@ -7,6 +9,16 @@ const movePlayer = state => ({
       step: step
     }
     return state
+  },
+  shoot: () => {
+    if (state.alive) {
+      state.missile = createMissile(state)
+    }
+  },
+  trackMissile: () => {
+    if (state.missile) {
+      state.missile = trackMissile(state)
+    }
   }
 })
 
@@ -17,6 +29,8 @@ const Player = ({ id, label, lives = 5, size = 20, stageSize = 480 }) => {
     stageSize,
     label,
     lives,
+    color: label === 'A' ? 'yellow' : 'green',
+    type: 'pc',
     health: 100,
     alive: true,
     position: {

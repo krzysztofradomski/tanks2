@@ -52,6 +52,9 @@ class Game {
       enemy.trackMissile()
       Math.random() < 0.1 && enemy.shoot()
     })
+    this.players.forEach(player => {
+      player.trackMissile()
+    })
     this.collisionsCheck()
   }
 
@@ -84,6 +87,13 @@ class Game {
     const player = this.players.filter(player => player.id === id)[0]
     if (player) {
       player.move(rest)
+    }
+  }
+
+  shootPlayer({ id }) {
+    const player = this.players.filter(player => player.id === id)[0]
+    if (player) {
+      player.shoot()
     }
   }
 

@@ -6,7 +6,7 @@ const createMissile = state => {
         x: Math.round(state.position.x + state.size / 2),
         y: Math.round(state.position.y + state.size / 2),
         vector: state.position.vector,
-        step: 5 * state.position.step
+        step: state.type === 'npc' ? 5 * state.position.step : 10 * state.position.step
       }
     }
     return missile

@@ -39,6 +39,7 @@ const Enemy = ({ id, size = 20, stageSize = 480 }) => {
     id,
     size,
     stageSize,
+    type: 'npc',
     color: 'silver',
     label: 'basic enemy',
     health: 100,
