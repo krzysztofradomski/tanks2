@@ -47,8 +47,8 @@ const Enemy = ({ id, size = 20, stageSize = 480 }) => {
     position: {
       vector: 'x',
       step: 1,
-      x: Math.random() * stageSize,
-      y: Math.random() * stageSize
+      x: Math.round(Math.random() * stageSize),
+      y: Math.round(Math.random() * stageSize / 3)
     }
   }
   return Object.assign(state, operateEnemy(state))

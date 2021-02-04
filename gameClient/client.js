@@ -59,6 +59,17 @@ let socket = io()
   // let gameNumber = null
   // let scoresData = null
 
+  function drawTerrain(obj) {
+    let size = obj.size || 20
+    let x = obj.x
+    let y = obj.y
+    if (obj.type === 'eagle') {
+      context.drawImage(sprites, 305, 32, 15, 15, x, y, size, size)
+    } else {
+      context.drawImage(sprites, 256, 0, 15, 15, x, y, size, size)
+    }
+  };
+
   function drawMissile(actor) {
     let mr = actor.missile.size
     let mx = actor.missile.position.x
@@ -308,6 +319,8 @@ let socket = io()
       document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
       console.log('Successfully connected to room number: ', myRoomNumber)
       console.log('Successfully connected to room id: ', myRoomId)
+      document.querySelector('.gameover h2').style.top = '-1000px'
+      document.querySelector('.pk h2').style.top = '-1000px'
       enableKeyboardControls()
     })
 
@@ -360,82 +373,26 @@ let socket = io()
 
       if (data.enemies.length) {
         data.enemies.forEach(enemy => drawEnemy(enemy, round))
-      // console.log('enemy draw', data.enemies[0])
-      // let round = 1
-      // let r = data.enemies[0].drawsize
-      // let x = data.enemies[0].position.x
-      // let y = data.enemies[0].position.y
-      // let pos = (data.enemies[0].moveto.vector > 0 ? '' : '-') + data.enemies[0].moveto.axis
-      // let version = round < 9 ? enemyTanksPositions[String(round)] : enemyTanksPositions[String((Math.random(1) * 8).toFixed(0))]
-      // context.drawImage(sprites, enemyTanksPositions[pos], version, 15, 15, x, y, r, r)
-      // enemyContainer.x = x
-      // enemyContainer.y = y
-      // enemyContainer.mask
-      //   .beginFill(0xffffff)
-      //   .drawCircle(sprite.width / 2, sprite.height / 2, Math.min(sprite.width, sprite.height) / 2)
-      //   .endFill()
       }
 
       if (data.players.length) {
         data.players.forEach(player => drawPlayer(player, round))
-        // console.log('data', data)
+      }
 
-      // playerAContainer = new PIXI.Container()
-      // playerA = new PIXI.Graphics()
-      // playerA.beginFill(0x3500fa, 1)
-      // playerA.drawRect(0, 0, 10, 10)
-      // playerA.endFill()
-      // playerAContainer.addChild(playerA)
-      // const tagStyle = new PIXI.TextStyle({
-      //   stroke: 0x3500fa,
-      //   fill: 0x3500fa
-      // })
-      // const tag = new PIXI.Text('Player A', tagStyle)
-      // tag.position.set(10, -30)
-      // playerAContainer.addChild(tag)
-      // app.stage.addChild(playerAContainer)
+      if (data.obstacles.length) {
+        data.obstacles.forEach(obstacle => drawTerrain(obstacle))
       }
-      // if (!data.players.some(player => player.label === 'A')) {
-      //   app.stage.removeChild(playerAContainer)
-      //   playerA = null
-      // }
-      if (playerA) {
-        drawEnemy(playerA)
-      }
-    // if (!playerB && data.players.some(player => player.label === 'B')) {
-    //   playerBContainer = new PIXI.Container()
-    //   playerB = new PIXI.Graphics()
-    //   playerB.beginFill(0x35cc5a, 1)
-    //   playerB.drawRect(0, 0, 10, 10)
-    //   playerB.endFill()
-    //   playerBContainer.addChild(playerB)
-    //   const tagStyle = new PIXI.TextStyle({
-    //     stroke: 0x35cc5a,
-    //     fill: 0x35cc5a
-    //   })
-    //   const tag = new PIXI.Text('Player B', tagStyle)
-    //   tag.position.set(10, -30)
-    //   playerBContainer.addChild(tag)
-    //   app.stage.addChild(playerBContainer)
-    // }
-    // if (!data.players.some(player => player.label === 'B')) {
-    //   app.stage.removeChild(playerBContainer)
-    //   playerB = null
-    // }
-    // if (playerB) {
-    //   const x = data.players.filter(player => player.label === 'B')[0].position
-    //     .x
-    //   // console.log('playerB x', x)
-    //   playerBContainer.x = x
-    //   const y = data.players.filter(player => player.label === 'B')[0].position
-    //     .y
-    //   // console.log('playerA B', y)
-    //   playerBContainer.y = y
-    // }
     })
 
     socket.on('playerKill', function (data) {
+      // let id = getMyRoomId()
+      document.querySelector('.pk h2').style.top = '10px'
+      // socket.emit('leaveRoomById', id)
+    })
+
+    socket.on('gameover', function (data) {
       let id = getMyRoomId()
+      document.querySelector('.gameover h2').style.top = '110px'
       socket.emit('leaveRoomById', id)
     })
 
