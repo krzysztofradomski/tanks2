@@ -382,15 +382,19 @@ let socket = io()
       if (data.obstacles.length) {
         data.obstacles.forEach(obstacle => drawTerrain(obstacle))
       }
+
+      if (data.explosions.length) {
+        data.explosions.forEach(exp => context.drawImage(sprites, 271, 127, 17, 17, exp.x, exp.y, 25, 25))
+      }
     })
 
-    socket.on('playerKill', function (data) {
+    socket.on('playerKill', data => {
       // let id = getMyRoomId()
       document.querySelector('.pk h2').style.top = '10px'
       // socket.emit('leaveRoomById', id)
     })
 
-    socket.on('gameover', function (data) {
+    socket.on('gameover', data => {
       let id = getMyRoomId()
       document.querySelector('.gameover h2').style.top = '110px'
       socket.emit('leaveRoomById', id)

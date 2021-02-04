@@ -17,6 +17,7 @@ class Game {
     this.playersById = []
     this.enemies = []
     this.players = []
+    this.explosions = []
   }
 
   start() {
@@ -37,6 +38,7 @@ class Game {
   scheduleNextTick() {
     // console.log('scheduleNextTick')
     clearTimeout(this.interval)
+    this.explosions = []
     this.interval = setTimeout(() => this.tick(), this.framerate)
   }
 
@@ -52,7 +54,8 @@ class Game {
       enemies: this.enemies,
       players: this.players,
       playersById: this.playersById,
-      obstacles: this.obstacles
+      obstacles: this.obstacles,
+      explosions: this.explosions
     }
     this.io.to(this.id).emit('gameLoop', gameData)
     this.scheduleNextTick()
@@ -150,6 +153,10 @@ class Game {
     this.obstacles = generateObstacles()
   }
 
+  createExplosion(position) {
+    this.explosions.push(position)
+  }
+
   collisionsCheck() {
     this.enemies.forEach(enemy => {
       if (enemy.position.x >= this.stageSize - enemy.size) {
@@ -168,6 +175,7 @@ class Game {
         this.players.forEach(player => {
           if (Math.abs(enemy.missile.position.x - player.position.x) < player.size &&
           Math.abs(enemy.missile.position.y - player.position.y) < player.size) {
+            this.createExplosion(player.position)
             this.killPlayer(player.id)
             enemy.missile = null
           }
@@ -177,6 +185,7 @@ class Game {
         this.players.forEach(player => {
           if (player.missile && Math.abs(player.missile.position.x - enemy.position.x) < enemy.size &&
           Math.abs(player.missile.position.y - enemy.position.y) < enemy.size) {
+            this.createExplosion(enemy.position)
             this.killEnemy(enemy.id)
             player.missile = null
           }
@@ -190,6 +199,7 @@ class Game {
           }
           if (enemy.missile && Math.abs(enemy.missile.position.x - obstacle.x) < obstacle.size &&
           Math.abs(enemy.missile.position.y - obstacle.y) < obstacle.size) {
+            this.createExplosion(obstacle)
             this.obstacles.splice(this.obstacles.indexOf(obstacle), 1)
             enemy.missile = null
           }
