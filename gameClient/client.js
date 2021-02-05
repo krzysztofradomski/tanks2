@@ -35,14 +35,14 @@ let socket = io()
     '-x': 161,
     y: 208,
     '-y': 130,
-    '1': 0,
-    '2': 16,
-    '3': 32,
-    '4': 48,
-    '5': 64,
-    '6': 80,
-    '7': 96,
-    '8': 112
+    1: 0,
+    2: 16,
+    3: 32,
+    4: 48,
+    5: 64,
+    6: 80,
+    7: 96,
+    8: 112
   }
   const playerPositions = {
     x: 95,
@@ -84,8 +84,8 @@ let socket = io()
     let x = enemy.position.x
     let y = enemy.position.y
     let vector = (enemy.position.step > 0 ? '' : '-') + enemy.position.vector
-    let version = round < 9 ? enemyTanksPositions[String(round)] : enemyTanksPositions[String((Math.random(1) * 8).toFixed(0))]
-    context.drawImage(sprites, enemyTanksPositions[vector], version, 15, 15, x, y, r, r)
+    let version = enemy.version
+    context.drawImage(sprites, enemyTanksPositions[vector], enemyTanksPositions[version], 15, 15, x, y, r, r)
     // context.drawImage(sprites, 271, 127, 17, 17, enemyExplosionPosition.x, enemyExplosionPosition.y, 25, 25)
     if (enemy.missile) {
       drawMissile(enemy)
@@ -94,7 +94,7 @@ let socket = io()
   function drawPlayer(player) {
   // let lives = player.lives
   // let score = player.score
-  // document.querySelector('stats ' + player + ' .scoreValue').textContent = score
+    // document.querySelector('.player' + player.label + ' .scoreValue').textContent = score
   // document.querySelector('stats ' + player + ' .livesValue').textContent = lives
     let playerSize = player.size
     let x = player.position.x
@@ -321,6 +321,8 @@ let socket = io()
       console.log('Successfully connected to room id: ', myRoomId)
       document.querySelector('.gameover h2').style.top = '-1000px'
       document.querySelector('.pk h2').style.top = '-1000px'
+      document.querySelector('.playerA .scoreValue').textContent = ''
+      document.querySelector('.playerB .scoreValue').textContent = ''
       enableKeyboardControls()
     })
 
@@ -388,9 +390,12 @@ let socket = io()
       }
     })
 
-    socket.on('playerKill', data => {
+    socket.on('playerKill', id => {
       // let id = getMyRoomId()
-      document.querySelector('.pk h2').style.top = '10px'
+      if (id === myId) {
+        document.querySelector('.pk h2').style.top = '10px'
+      }
+
       // socket.emit('leaveRoomById', id)
     })
 
@@ -398,6 +403,17 @@ let socket = io()
       let id = getMyRoomId()
       document.querySelector('.gameover h2').style.top = '110px'
       socket.emit('leaveRoomById', id)
+    })
+
+    socket.on('score', data => {
+      let scoreA = document.querySelector('.playerA .scoreValue').textContent
+      let scoreB = document.querySelector('.playerB .scoreValue').textContent
+      if (scoreA != data.A) {
+        document.querySelector('.playerA .scoreValue').textContent = data.A
+      }
+      if (scoreB != data.B) {
+        document.querySelector('.playerB .scoreValue').textContent = data.B
+      }
     })
 
     document.getElementById('private').addEventListener('submit', joinPrivateGame)

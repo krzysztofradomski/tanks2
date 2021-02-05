@@ -39,6 +39,7 @@ const Player = ({ id, label, lives = 5, size = 20, stageSize = 480 }) => {
       x: label === 'A' ? 0 : stageSize - size,
       y: stageSize - size
     },
+    score: 0,
     missile: null
   }
   return Object.assign(state, movePlayer(state))

@@ -18,6 +18,14 @@ class Game {
     this.enemies = []
     this.players = []
     this.explosions = []
+    this.score = {
+      'A': 0,
+      'B': 0
+    }
+  }
+
+  emitEventAndData(eventName, data) {
+    this.io.to(this.id).emit(eventName, data)
   }
 
   start() {
@@ -26,7 +34,7 @@ class Game {
       this.getNewObstacles()
       for (let i = 1; i <= 10; i++) {
         setTimeout(() => {
-          this.addEnemy(i)
+          this.addEnemy(i, i)
         }, i * 1000)
       }
       this.addEnemy()
@@ -57,7 +65,7 @@ class Game {
       obstacles: this.obstacles,
       explosions: this.explosions
     }
-    this.io.to(this.id).emit('gameLoop', gameData)
+    this.emitEventAndData('gameLoop', gameData)
     this.scheduleNextTick()
   }
 
@@ -108,13 +116,13 @@ class Game {
   }
 
   killPlayer(id) {
-    console.log('killPlayer')
+    console.log('killPlayer', id)
     this.playersById = this.playersById.filter(playerId => playerId !== id)
     this.players = this.players.filter(player => player.id !== id)
-    this.io.to(this.id).emit('playerKill', id)
+    this.emitEventAndData('playerKill', id)
     if (!this.playersById.length) {
       setTimeout(() => {
-        this.io.to(this.id).emit('gameover')
+        this.emitEventAndData('gameover')
         this.gameover = true
       }, 3000)
     }
@@ -135,17 +143,20 @@ class Game {
     }
   }
 
-  addEnemy(i) {
+  addEnemy(i, v = 1) {
     const e = Enemy({
       id: i ? `enemy-${i}` : `enemy-${Date.now()}`,
       size: this.enemySize,
-      stageSize: this.stageSize
+      stageSize: this.stageSize,
+      version: v
     })
     this.enemies.push(e)
   }
 
-  killEnemy(id) {
+  killEnemy({ id, version }, { label }) {
     this.enemies = this.enemies.filter(enemy => enemy.id !== id)
+    this.score[label] = this.score[label] + version
+    this.emitEventAndData('score', this.score)
   }
 
   getNewObstacles() {
@@ -186,7 +197,10 @@ class Game {
           if (player.missile && Math.abs(player.missile.position.x - enemy.position.x) < enemy.size &&
           Math.abs(player.missile.position.y - enemy.position.y) < enemy.size) {
             this.createExplosion(enemy.position)
-            this.killEnemy(enemy.id)
+            enemy.health--
+            if (enemy.health <= 0) {
+              this.killEnemy(enemy, player)
+            }
             player.missile = null
           }
         })
@@ -202,6 +216,16 @@ class Game {
             this.createExplosion(obstacle)
             this.obstacles.splice(this.obstacles.indexOf(obstacle), 1)
             enemy.missile = null
+          }
+          if (this.players.length) {
+            this.players.forEach(player => {
+              if (player.missile && Math.abs(player.missile.position.x - obstacle.x) < obstacle.size &&
+              Math.abs(player.missile.position.y - obstacle.y) < obstacle.size) {
+                this.createExplosion(obstacle)
+                this.obstacles.splice(this.obstacles.indexOf(obstacle), 1)
+                player.missile = null
+              }
+            })
           }
         })
       }

@@ -34,15 +34,16 @@ const operateEnemy = state => ({
   }
 })
 
-const Enemy = ({ id, size = 20, stageSize = 480 }) => {
+const Enemy = ({ id, size = 20, stageSize = 480, version = 1 }) => {
   const state = {
     id,
     size,
     stageSize,
     type: 'npc',
+    version,
     color: 'silver',
     label: 'basic enemy',
-    health: 100,
+    health: version || 1,
     alive: true,
     position: {
       vector: 'x',
