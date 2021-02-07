@@ -4,7 +4,7 @@ const movePlayer = state => ({
   move: ({ vector, step }) => {
     state.position = {
       ...state.position,
-      [vector]: state.position[vector] + step,
+      [vector]: state.position[vector] + step * 2,
       vector: vector,
       step: step
     }
@@ -22,7 +22,7 @@ const movePlayer = state => ({
   }
 })
 
-const Player = ({ id, label, lives = 5, size = 20, stageSize = 480 }) => {
+const Player = ({ id, label, lives = 10, size = 20, stageSize = 480 }) => {
   const state = {
     id,
     size,
@@ -31,7 +31,7 @@ const Player = ({ id, label, lives = 5, size = 20, stageSize = 480 }) => {
     lives,
     color: label === 'A' ? 'yellow' : 'green',
     type: 'pc',
-    health: 100,
+    health: 10,
     alive: true,
     position: {
       vector: 'y',

@@ -416,6 +416,17 @@ let socket = io()
       }
     })
 
+    socket.on('health', data => {
+      let healthA = document.querySelector('.playerA .livesValue').textContent
+      let healthB = document.querySelector('.playerB .livesValue').textContent
+      if (healthA != data.A) {
+        document.querySelector('.playerA .livesValue').textContent = data.A
+      }
+      if (healthB != data.B) {
+        document.querySelector('.playerB .livesValue').textContent = data.B
+      }
+    })
+
     document.getElementById('private').addEventListener('submit', joinPrivateGame)
   }
 

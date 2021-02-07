@@ -22,6 +22,7 @@ class Game {
       'A': 0,
       'B': 0
     }
+    this.round = 0
   }
 
   emitEventAndData(eventName, data) {
@@ -31,13 +32,7 @@ class Game {
   start() {
     if (this.running === false) {
       console.log(`Game '${this.id}' started.`)
-      this.getNewObstacles()
-      for (let i = 1; i <= 10; i++) {
-        setTimeout(() => {
-          this.addEnemy(i, i)
-        }, i * 1000)
-      }
-      this.addEnemy()
+      this.generateRoundData()
       this.running = true
       this.scheduleNextTick()
     }
@@ -101,6 +96,12 @@ class Game {
       this.playersById.push(id)
       this.players.push(Player({ id, label }))
     }
+    const a = this.players.find(player => player.label === 'A')
+    const b = this.players.find(player => player.label === 'B')
+    this.emitEventAndData('health', {
+      'A': a ? a.health : '',
+      'B': b ? b.health : ''
+    })
   }
 
   leavePlayer(id) {
@@ -143,9 +144,9 @@ class Game {
     }
   }
 
-  addEnemy(i, v = 1) {
+  addEnemy(id, v = 1) {
     const e = Enemy({
-      id: i ? `enemy-${i}` : `enemy-${Date.now()}`,
+      id: id ? `enemy-${id}` : `enemy-${Date.now()}`,
       size: this.enemySize,
       stageSize: this.stageSize,
       version: v
@@ -157,6 +158,9 @@ class Game {
     this.enemies = this.enemies.filter(enemy => enemy.id !== id)
     this.score[label] = this.score[label] + version
     this.emitEventAndData('score', this.score)
+    if (this.enemies.length === 0) {
+      this.generateRoundData(this.round + 1)
+    }
   }
 
   getNewObstacles() {
@@ -166,6 +170,17 @@ class Game {
 
   createExplosion(position) {
     this.explosions.push(position)
+  }
+
+  generateRoundData(newRound) {
+    if (this.round === newRound) return
+    this.round++
+    this.getNewObstacles()
+    for (let i = 1; i <= 10; i++) {
+      setTimeout(() => {
+        this.addEnemy(i, this.round)
+      }, i * 1000)
+    }
   }
 
   collisionsCheck() {
@@ -184,10 +199,14 @@ class Game {
       }
       if (enemy.missile && this.players.length) {
         this.players.forEach(player => {
-          if (Math.abs(enemy.missile.position.x - player.position.x) < player.size &&
+          if (enemy.missile && Math.abs(enemy.missile.position.x - player.position.x) < player.size &&
           Math.abs(enemy.missile.position.y - player.position.y) < player.size) {
             this.createExplosion(player.position)
-            this.killPlayer(player.id)
+            player.health--
+            this.emitEventAndData('health', { [player.label]: player.health })
+            if (player.health <= 0) {
+              this.killPlayer(player.id)
+            }
             enemy.missile = null
           }
         })
@@ -205,7 +224,7 @@ class Game {
           }
         })
       }
-      if (enemy.missile && this.obstacles.length) {
+      if (this.obstacles.length) {
         this.obstacles.forEach(obstacle => {
           if (Math.abs(obstacle.x - enemy.position.x) < enemy.size &&
           Math.abs(obstacle.y - enemy.position.y) < enemy.size) {
@@ -215,6 +234,10 @@ class Game {
           Math.abs(enemy.missile.position.y - obstacle.y) < obstacle.size) {
             this.createExplosion(obstacle)
             this.obstacles.splice(this.obstacles.indexOf(obstacle), 1)
+            if (obstacle.type === 'eagle') {
+              this.emitEventAndData('gameover')
+              this.gameover = true
+            }
             enemy.missile = null
           }
           if (this.players.length) {
@@ -223,7 +246,16 @@ class Game {
               Math.abs(player.missile.position.y - obstacle.y) < obstacle.size) {
                 this.createExplosion(obstacle)
                 this.obstacles.splice(this.obstacles.indexOf(obstacle), 1)
+                if (obstacle.type === 'eagle') {
+                  this.emitEventAndData('gameover')
+                  this.gameover = true
+                }
                 player.missile = null
+              }
+              if (Math.abs(player.position.x - obstacle.x) < obstacle.size &&
+              Math.abs(player.position.y - obstacle.y) < obstacle.size) {
+                console.log('blocked')
+                player.move({ vector: player.position.vector, step: player.position.step * -1 })
               }
             })
           }
