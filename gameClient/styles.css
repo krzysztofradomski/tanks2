@@ -81,7 +81,7 @@ canvas {
   font-weight: bold;
 }
 
-.gameover h2, .nextround h2, .pk h2 {
+.gameover h2, .nextround h2, .nextround span, .pk h2 {
   position: absolute;
   top: -1000px;
   width: 95%;

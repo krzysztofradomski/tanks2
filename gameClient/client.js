@@ -4,7 +4,7 @@
   const isPrivateRoomNameValid = str => getRoomType(str) === 'private'
 
   // eslint-disable-next-line
-let socket = io()
+  let socket = io()
 
   const canvas = document.getElementById('c')
   const context = canvas.getContext('2d')
@@ -52,12 +52,6 @@ let socket = io()
     'A': 0,
     'B': 129
   }
-  // const enemyExplosionPosition = {
-  //   x: -50,
-  //   y: -50
-  // }
-  // let gameNumber = null
-  // let scoresData = null
 
   function drawTerrain(obj) {
     let size = obj.size || 20
@@ -86,26 +80,17 @@ let socket = io()
     let vector = (enemy.position.step > 0 ? '' : '-') + enemy.position.vector
     let version = enemy.version
     context.drawImage(sprites, enemyTanksPositions[vector], enemyTanksPositions[version], 15, 15, x, y, r, r)
-    // context.drawImage(sprites, 271, 127, 17, 17, enemyExplosionPosition.x, enemyExplosionPosition.y, 25, 25)
     if (enemy.missile) {
       drawMissile(enemy)
     }
   };
   function drawPlayer(player) {
-  // let lives = player.lives
-  // let score = player.score
-    // document.querySelector('.player' + player.label + ' .scoreValue').textContent = score
-  // document.querySelector('stats ' + player + ' .livesValue').textContent = lives
     let playerSize = player.size
     let x = player.position.x
     let y = player.position.y
     let vector = (player.position.step > 0 ? '' : '-') + player.position.vector
     let label = player.label
     context.drawImage(sprites, playerPositions[vector], playerPositions[label], 15, 15, x, y, playerSize, playerSize)
-    // enemyExplosionPosition = {
-    //   'x': -50,
-    //   'y': -50
-    // }
     if (player.missile) {
       drawMissile(player)
     }
@@ -184,9 +169,7 @@ let socket = io()
       container.appendChild(div)
     }
     document.getElementById('room').textContent = getMyRoomId()
-    document.getElementById('time').textContent = getMyGameTime()
     document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
-    document.getElementById('players').textContent = getMyGamePlayers()
     console.log('getMyRoomId()', getMyRoomId())
   }
 
@@ -221,45 +204,11 @@ let socket = io()
     return match[0] ? match[0].id : null
   }
 
-  /**
- * Returns connection's active room index, if any.
- *
- * @returns number or null
- */
-  // function getMyRoomNumber() {
-  //   let match = roomsData.rooms.filter(
-  //     room => room.data && room.data.sockets[myId]
-  //   )
-  //   return match[0] ? match[0].nr : null
-  // }
-
-  /**
- * Returns connection's room game time.
- *
- * @returns number or null
- */
-  function getMyGameTime() {
-    return myGameData ? parseInt(myGameData.time) : 0
-  }
-
   function getMyGamePlayerLabel() {
     return myGameData
       ? myGameData.players.filter(player => player.id === myId) &&
     myGameData.players.filter(player => player.id === myId)[0] &&
         myGameData.players.filter(player => player.id === myId)[0].label
-      : null
-  }
-
-  /**
- * Returns connection's room players.
- *
- * @returns [string] or null
- */
-  function getMyGamePlayers() {
-    return myGameData
-      ? playersByIds
-        .map(player => (player === myId ? player + ' (you)' : player))
-        .join(', ')
       : null
   }
 
@@ -302,9 +251,7 @@ let socket = io()
       console.log('Disconnected')
       myGameData = null
       document.getElementById('room').textContent = getMyRoomId()
-      document.getElementById('time').textContent = getMyGameTime()
       document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
-      document.getElementById('players').textContent = getMyGamePlayers()
       console.log('getMyRoomId()', getMyRoomId())
       enemy = null
       playerA = null
@@ -349,7 +296,6 @@ let socket = io()
       playersByIds = myRoom ? Object.keys(myRoom.data.sockets) : []
       playersByIds.forEach(id => console.log('connected player id', id))
       document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
-      document.getElementById('players').textContent = getMyGamePlayers()
     })
 
     socket.on('nonBreakingError', function (data) {
@@ -360,18 +306,10 @@ let socket = io()
       if (!myGameData) {
         myGameData = data
         document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
-        document.getElementById('players').textContent = getMyGamePlayers()
       } else {
         myGameData = data
       }
       context.clearRect(0, 0, canvas.width, canvas.height)
-
-      // console.log('myGameData', myGameData)
-      // myGameDataStream.push(data)
-
-      if (document.getElementById('time').textContent !== getMyGameTime()) {
-        document.getElementById('time').textContent = getMyGameTime()
-      }
 
       if (data.enemies.length) {
         data.enemies.forEach(enemy => drawEnemy(enemy, round))
@@ -403,6 +341,13 @@ let socket = io()
       let id = getMyRoomId()
       document.querySelector('.gameover h2').style.top = '110px'
       socket.emit('leaveRoomById', id)
+    })
+
+    socket.on('round', data => {
+      document.querySelector('.nextround h2').style.top = '110px'
+      document.querySelector('#round').textContent = data
+      document.querySelector('.nextround h2').textContent.replace(/[0-1]/, data)
+      setTimeout(() => { document.querySelector('.nextround h2').style.top = '-1000px' }, 2000)
     })
 
     socket.on('score', data => {

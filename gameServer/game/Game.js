@@ -176,6 +176,7 @@ class Game {
     if (this.round === newRound) return
     this.round++
     this.getNewObstacles()
+    this.emitEventAndData('round', this.round)
     for (let i = 1; i <= 10; i++) {
       setTimeout(() => {
         this.addEnemy(i, this.round)
