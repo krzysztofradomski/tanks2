@@ -342,18 +342,18 @@
       // socket.emit('leaveRoomById', id)
     })
 
-    socket.on('gameover', data => {
+    socket.on('gameover', () => {
       let id = getMyRoomId()
       document.querySelector('.gameover h2').style.top = '110px'
       socket.emit('leaveRoomById', id)
-      setTimeout(() => {
-        let playerName = prompt('Please enter your name (max 15 characters):', 'Player Unknown')
-        if (playerName && isNewTopScore) {
+      if (isNewTopScore) {
+        let playerName = prompt('New top score, please enter your name (max 15 characters):', 'Player Unknown')
+        if (playerName) {
           playerName = playerName.length > 15 ? playerName.slice(0, 15) + '...' : playerName
         }
         console.log('emit topscore topScore', topScore)
         socket.emit('newTopScore', { playerName, topScore })
-      }, 2000)
+      }
     })
 
     socket.on('round', data => {
