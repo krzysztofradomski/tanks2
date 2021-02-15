@@ -2,13 +2,25 @@ const fs = require('fs')
 const express = require('express')
 const helmet = require('helmet')
 const compression = require('compression')
+const fb = require('firebase-admin')
+const serviceAccount = require('./key.json')
 const SocketServer = require('../gameServer/network')
+
+fb.initializeApp({
+  credential: fb.credential.cert(serviceAccount),
+  databaseURL: 'https://tanks-c0fa6.firebaseio.com'
+})
+
+const db = fb.database()
+const fbRef = db.ref('/scores-new')
+
 class Server {
   constructor() {
     this.app = express()
     this.http = require('http').Server(this.app)
     this.io = require('socket.io')(this.http)
-    this.socketServer = new SocketServer(this.io)
+    this.fb = fbRef
+    this.socketServer = new SocketServer(this.io, this.fb)
   }
 
   initialiseSocketCommunication() {

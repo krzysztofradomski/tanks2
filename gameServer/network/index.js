@@ -11,8 +11,7 @@ const {
 
 /**
  * This class sets up the Socket.io communication and shared namespace.
- * It's a singleton!
- * It requires an Socket.io instance based on the Express server.
+ * It requires an Socket.io instance based on the Express server, and a firebase ref used for scores.
  * Variable roomNumber is the initial room index.
  * Variables shared by connections are either computed (managed by event handlers),
  * or native (extracted from Socket.io).
@@ -20,7 +19,7 @@ const {
  * @param {object} io
  */
 class IOServer {
-  constructor(io) {
+  constructor(io, fb) {
     this.io = io
     this.roomNumber = 1
     this.computedRoomsById = []
@@ -28,6 +27,7 @@ class IOServer {
     this.nativeAllActiveRooms = this.io.nsps['/'].adapter.rooms
     this.computedActiveGamesMap = {}
     this.handleConnection = this.handleConnection.bind(this)
+    this.fb = fb
   }
 
   /**
@@ -265,6 +265,45 @@ class IOServer {
       }
     }
 
+    const publishScores = () => {
+      const topScores = []
+      this.fb.once('value').then((snapshot) => {
+        console.log('snapshot')
+        const db = snapshot.val()
+        if (!db) {
+          socket.emit('publishScores', topScores)
+        }
+        const keys = Object.keys(db)
+        const scores = []
+        let score = []
+        for (let i = 0; i < keys.length; i++) {
+          score.push(db[keys[i]].name, db[keys[i]].score, db[keys[i]].date)
+          scores.push(score)
+          score = []
+        }
+        scores.sort((a, b) => a[1] - b[1]).reverse()
+        for (let j = 0; j < 3; j++) {
+          if (scores[j] && scores[j][0]) {
+            topScores.push('Name: ' + scores[j][0] + ', score: ' + scores[j][1] + ' points, date: ' + scores[j][2])
+          }
+        }
+        socket.emit('publishScores', topScores)
+      }).catch(error => console.log('error', error))
+    }
+
+    const updateScores = ({ playerName, topScore }) => {
+      if (playerName) {
+        const date = new Date(Date.now()).toLocaleDateString()
+        const data = {
+          name: playerName,
+          score: topScore,
+          date: date
+        }
+        this.fb.push(data)
+        console.log('Publishing data to firebase: ' + playerName + ' ' + topScore + ' ' + date)
+      }
+    }
+
     // Auto join newly created room.
     socket.on('autoJoin', autoJoin)
 
@@ -285,6 +324,12 @@ class IOServer {
 
     // Handle player shoot
     socket.on('shootPlayer', data => shootPlayer(data))
+
+    // Request top scores from firebase
+    socket.on('requestScores', () => publishScores())
+
+    // Update top scores in firebase
+    socket.on('newTopScore', data => updateScores(data))
 
     // BroadcastRoomsData stats to everyone connected.
     broadcastRoomsData()

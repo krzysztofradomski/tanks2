@@ -18,10 +18,8 @@
   let myRoomId = null
   let myGameData = null
   let myGameDataStream = []
-  let enemy = null
-  let playerA = null
-  let playerB = null
-  let app = null
+  let topScore = null
+  let isNewTopScore = false
   let keyInterval = null
   let up = null
   let down = null
@@ -52,6 +50,16 @@
     'A': 0,
     'B': 129
   }
+
+  function drawScores(data) {
+    console.log('drawScores', data)
+    for (let j = 0; j < 3; j++) {
+      let suffix = j === 0 ? 'st' : j === 1 ? 'nd' : 'rd'
+      let text = typeof data[j] !== 'undefined' ? (j + 1) + suffix + ' place: ' + data[j] + '.' : (j + 1) + suffix + ' place: ' + 'No data available.'
+      document.querySelectorAll('.topscores p')[j].textContent = text
+    }
+    topScore = data.length ? data[0].match(/[0-9]+/g)[0] : 0
+  };
 
   function drawTerrain(obj) {
     let size = obj.size || 20
@@ -211,6 +219,7 @@
         myGameData.players.filter(player => player.id === myId)[0].label
       : null
   }
+  window.getMyGamePlayerLabel = getMyGamePlayerLabel
 
   /**
  * Join first available room.
@@ -253,9 +262,6 @@
       document.getElementById('room').textContent = getMyRoomId()
       document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
       console.log('getMyRoomId()', getMyRoomId())
-      enemy = null
-      playerA = null
-      playerB = null
       disableKeyboardControls()
     })
 
@@ -278,10 +284,6 @@
       myGameData = null
       console.log('Successfully left room: ', data)
       console.log('myGameDataStream', myGameDataStream)
-
-      enemy = null
-      playerA = null
-      playerB = null
       disableKeyboardControls()
       myRoomId = getMyRoomId()
     })
@@ -296,7 +298,10 @@
       playersByIds = myRoom ? Object.keys(myRoom.data.sockets) : []
       playersByIds.forEach(id => console.log('connected player id', id))
       document.getElementById('playerLabel').textContent = getMyGamePlayerLabel()
+      socket.emit('requestScores')
     })
+
+    socket.on('publishScores', scores => drawScores(scores))
 
     socket.on('nonBreakingError', function (data) {
       console.warn(data)
@@ -341,6 +346,14 @@
       let id = getMyRoomId()
       document.querySelector('.gameover h2').style.top = '110px'
       socket.emit('leaveRoomById', id)
+      setTimeout(() => {
+        let playerName = prompt('Please enter your name (max 15 characters):', 'Player Unknown')
+        if (playerName && isNewTopScore) {
+          playerName = playerName.length > 15 ? playerName.slice(0, 15) + '...' : playerName
+        }
+        console.log('emit topscore topScore', topScore)
+        socket.emit('newTopScore', { playerName, topScore })
+      }, 2000)
     })
 
     socket.on('round', data => {
@@ -358,6 +371,12 @@
       }
       if (scoreB != data.B) {
         document.querySelector('.playerB .scoreValue').textContent = data.B
+      }
+      console.log('topScore', topScore)
+      console.log('data[getMyGamePlayerLabel()]', data[getMyGamePlayerLabel()])
+      if (data[getMyGamePlayerLabel()] > topScore) {
+        topScore = data[getMyGamePlayerLabel()]
+        isNewTopScore = true
       }
     })
 

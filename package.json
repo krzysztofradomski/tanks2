@@ -18,6 +18,7 @@
     "compression": "^1.7.4",
     "dotenv": "^8.2.0",
     "express": "^4.16.4",
+    "firebase-admin": "^9.5.0",
     "helmet": "^4.4.1",
     "http": "0.0.0",
     "nodemon": "^2.0.2",
