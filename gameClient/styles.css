@@ -125,6 +125,12 @@ canvas {
   font-weight: bold;
 }
 
+.link {
+  color: black;
+  margin: 5px;
+  display: block;
+}
+
 #private {
   margin-top: 35px;
   padding: 5px;
