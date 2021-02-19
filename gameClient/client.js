@@ -111,7 +111,8 @@
   function createControls() {
     let controls = [
       { label: 'autoJoin', f: autoJoin, disabled: getMyRoomId() !== null },
-      { label: 'leaveRoom', f: leaveRoom, disabled: getMyRoomId() === null }
+      { label: 'leaveRoom', f: leaveRoom, disabled: getMyRoomId() === null },
+      { label: ' Move: arrows (⇦ ⇨ ⇧ ⇩), shoot: Spacebar.', f: () => {}, disabled: true }
     ]
     let container = document.getElementById('controls')
     container.innerHTML = ''
@@ -357,9 +358,10 @@
     })
 
     socket.on('round', data => {
+      console.log('round', data)
       document.querySelector('.nextround h2').style.top = '110px'
       document.querySelector('#round').textContent = data
-      document.querySelector('.nextround h2').textContent.replace(/[0-1]/, data)
+      document.querySelector('.nextround h2').textContent = document.querySelector('.nextround h2').textContent.replace(/[0-1]/, data)
       setTimeout(() => { document.querySelector('.nextround h2').style.top = '-1000px' }, 2000)
     })
 
