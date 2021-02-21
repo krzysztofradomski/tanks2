@@ -3,8 +3,13 @@ const express = require('express')
 const helmet = require('helmet')
 const compression = require('compression')
 const fb = require('firebase-admin')
-const serviceAccount = require('./key.json')
+const serviceAccount = require('./../key.json')
 const SocketServer = require('../gameServer/network')
+
+serviceAccount.private_key_id = process.env.private_key_id
+serviceAccount.private_key = process.env.private_key.replace(/\\n/g, '\n')
+serviceAccount.client_email = process.env.client_email
+serviceAccount.client_id = process.env.client_id
 
 fb.initializeApp({
   credential: fb.credential.cert(serviceAccount),
