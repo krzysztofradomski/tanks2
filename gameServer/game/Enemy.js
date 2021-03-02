@@ -1,3 +1,5 @@
+const { createMissile, trackMissile } = require('./shooting')
+
 const recalculatePosition = pos => {
   const shouldChangeDirection = Math.random() > 0.95
   if (shouldChangeDirection) {
@@ -13,31 +15,44 @@ const recalculatePosition = pos => {
   }
 }
 
-const moveEnemy = state => ({
+const operateEnemy = state => ({
   move: () => {
     if (state.alive) {
       state.position = recalculatePosition(state.position)
     }
     return state
+  },
+  shoot: () => {
+    if (state.alive) {
+      state.missile = createMissile(state)
+    }
+  },
+  trackMissile: () => {
+    if (state.missile) {
+      state.missile = trackMissile(state)
+    }
   }
 })
 
-const Enemy = ({ id, size = 20, stageSize = 480 }) => {
+const Enemy = ({ id, size = 20, stageSize = 480, version = 1 }) => {
   const state = {
     id,
     size,
     stageSize,
+    type: 'npc',
+    version,
+    color: 'silver',
     label: 'basic enemy',
-    health: 100,
+    health: version || 1,
     alive: true,
     position: {
       vector: 'x',
       step: 1,
-      x: Math.random() * stageSize,
-      y: Math.random() * stageSize
+      x: Math.round(Math.random() * stageSize),
+      y: Math.round(Math.random() * stageSize / 3)
     }
   }
-  return Object.assign(state, moveEnemy(state))
+  return Object.assign(state, operateEnemy(state))
 }
 
 module.exports = Enemy

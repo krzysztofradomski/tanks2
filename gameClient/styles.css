@@ -81,7 +81,7 @@ canvas {
   font-weight: bold;
 }
 
-.gameover h2 {
+.gameover h2, .nextround h2, .nextround span, .pk h2 {
   position: absolute;
   top: -1000px;
   width: 95%;
@@ -123,6 +123,12 @@ canvas {
 .mine {
   color: green !important;
   font-weight: bold;
+}
+
+.link {
+  color: black;
+  margin: 5px;
+  display: block;
 }
 
 #private {

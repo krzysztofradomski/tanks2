@@ -1,18 +1,35 @@
-var fs = require('fs')
-const IOServer = require('../gameServer/network')
+const fs = require('fs')
+const express = require('express')
+const helmet = require('helmet')
+const compression = require('compression')
+const fb = require('firebase-admin')
+const serviceAccount = require('./../key.json')
+const SocketServer = require('../gameServer/network')
+
+serviceAccount.private_key_id = process.env.private_key_id
+serviceAccount.private_key = process.env.private_key.replace(/\\n/g, '\n')
+serviceAccount.client_email = process.env.client_email
+serviceAccount.client_id = process.env.client_id
+
+fb.initializeApp({
+  credential: fb.credential.cert(serviceAccount),
+  databaseURL: 'https://tanks-c0fa6.firebaseio.com'
+})
+
+const db = fb.database()
+const fbRef = db.ref('/scores-new')
+
 class Server {
   constructor() {
-    this.express = require('express')
-    this.app = this.express()
-    this.helmet = require('helmet')
-    this.compression = require('compression')
+    this.app = express()
     this.http = require('http').Server(this.app)
     this.io = require('socket.io')(this.http)
-    this.ioServer = new IOServer(this.io)
+    this.fb = fbRef
+    this.socketServer = new SocketServer(this.io, this.fb)
   }
 
   initialiseSocketCommunication() {
-    this.ioServer.start()
+    this.socketServer.start()
   }
 
   listen() {
@@ -22,10 +39,10 @@ class Server {
   }
 
   setup() {
-    this.app.use(this.helmet({
+    this.app.use(helmet({
       contentSecurityPolicy: false
     }))
-    this.app.use(this.compression())
+    this.app.use(compression())
   }
 
   serveStaticFiles() {
@@ -37,7 +54,7 @@ class Server {
         if (err) console.log('ERROR: ' + err)
       })
     }
-    this.app.use(this.express.static('gameClient'))
+    this.app.use(express.static('gameClient'))
   }
 
   start() {
